@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KGL Manager Dashboard</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/managerDashboard.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../images/logo.png" alt="KGL Logo" />
+
+            <!-- Toggle Button NOW in sidebar -->
+            <button class="toggle-btn" id="toggleBtn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <nav>
+            <a href="#"><i class="fa-solid fa-chart-line"></i><span> Dashboard</span></a>
+            <a href="#"><i class="fa-solid fa-box"></i><span> Procure Produce</span></a>
+            <a href="#"><i class="fa-solid fa-cart-shopping"></i><span> Record Sales</span></a>
+            <a href="#"><i class="fa-solid fa-warehouse"></i><span> Stock Management</span></a>
+            <a href="#"><i class="fa-solid fa-credit-card"></i><span> Credit Sales</span></a>
+            <a href="#"><i class="fa-solid fa-gear"></i><span> Settings</span></a>
+            <a href="#"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
+        </nav>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main" id="main">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <h3>Welcome, Branch Manager</h3>
+            <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+        </header>
+
+        <!-- Alert -->
+        <section class="alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <p><strong>Alert:</strong> Beans stock is running low</p>
+        </section>
+
+        <!-- Summary Cards -->
+        <section class="cards">
+            <div class="card">
+                <i class="fa-solid fa-seedling"></i>
+                <h4>Produce Types</h4>
+                <p>5</p>
+            </div>
+
+            <div class="card">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <h4>Total Stock</h4>
+                <p>18,500 KG</p>
+            </div>
+
+            <div class="card">
+                <i class="fa-solid fa-coins"></i>
+                <h4>Today’s Sales</h4>
+                <p>UGX 4,200,000</p>
+            </div>
+
+            <div class="card">
+                <i class="fa-solid fa-clock"></i>
+                <h4>Credit Due</h4>
+                <p>UGX 1,800,000</p>
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="charts">
+            <div class="chart-box">
+                <h4>Stock Levels (KG)</h4>
+                <canvas id="stockChart"></canvas>
+            </div>
+
+            <div class="chart-box">
+                <h4>Weekly Sales (UGX)</h4>
+                <canvas id="salesChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS -->
+    <script src="../js/managerDashboard.js"></script>
+</body>
+
+</html>
