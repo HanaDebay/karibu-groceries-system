@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Record Produce Procurement - KGL</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/procurement.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img src="../images/logo.png" alt="KGL Logo" class="logo" />
+        <h2>Record Produce Procurement</h2>
+      </header>
+
+      <form id="procurementForm">
+        <div class="form-group">
+          <label for="produceName"
+            ><i class="fa-solid fa-seedling"></i> Produce Name</label
+          >
+          <input type="text" id="produceName" name="produceName" required />
+        </div>
+
+        <div class="form-group">
+          <label for="produceType"
+            ><i class="fa-solid fa-tag"></i> Type of Produce</label
+          >
+          <input
+            type="text"
+            id="produceType"
+            name="produceType"
+            pattern="[A-Za-z]{2,}"
+            title="At least 2 letters"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="date"
+            ><i class="fa-solid fa-calendar-days"></i> Date</label
+          >
+          <input type="date" id="date" name="date" required />
+        </div>
+
+        <div class="form-group">
+          <label for="time"><i class="fa-solid fa-clock"></i> Time</label>
+          <input type="time" id="time" name="time" required />
+        </div>
+
+        <div class="form-group">
+          <label for="tonnage"
+            ><i class="fa-solid fa-weight-scale"></i> Tonnage (KG)</label
+          >
+          <input type="number" id="tonnage" name="tonnage" min="100" required />
+        </div>
+
+        <div class="form-group">
+          <label for="cost"><i class="fa-solid fa-coins"></i> Cost (UGX)</label>
+          <input type="number" id="cost" name="cost" min="10000" required />
+        </div>
+
+        <div class="form-group">
+          <label for="dealerName"
+            ><i class="fa-solid fa-user"></i> Dealer Name</label
+          >
+          <input
+            type="text"
+            id="dealerName"
+            name="dealerName"
+            minlength="2"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="branch"
+            ><i class="fa-solid fa-building"></i> Branch</label
+          >
+          <select id="branch" name="branch" required>
+            <option value="">Select Branch</option>
+            <option value="Maganjo">Maganjo</option>
+            <option value="Matugga">Matugga</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="contact"><i class="fa-solid fa-phone"></i> Contact</label>
+          <input
+            type="tel"
+            id="contact"
+            name="contact"
+            pattern="[0-9]{10,12}"
+            title="Enter a valid phone number"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="sellPrice"
+            ><i class="fa-solid fa-dollar-sign"></i> Selling Price (UGX)</label
+          >
+          <input
+            type="number"
+            id="sellPrice"
+            name="sellPrice"
+            min="10000"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fa-solid fa-floppy-disk"></i> Save Procurement
+        </button>
+      </form>
+    </div>
+
+    <!-- JS -->
+    <script src="../js/procurement.js"></script>
+  </body>
+</html>
