@@ -16,8 +16,8 @@ A web-based stock and user management system for a wholesale cereal distributor.
 - Aggregated reports
 
 
-![Before Formatting with Prettier](images/beforePrittier.jpg)
+![Before Formatting with Prettier](frontend/public/images/beforePrittier.jpg)
 Before using Prettier, some of the HTML code in this project had indentation errors, making it harder to read and maintain.
 
-![After Formatting with Prettier](images/AfterPrittier.jpg)
+![After Formatting with Prettier](frontend/public/images/AfterPrettier.jpg)
 After running Prettier, all the HTML code was automatically formatted with proper indentation, spacing, and consistent styling. This makes the code cleaner, easier to read, and more professional.
