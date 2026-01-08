@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credit Sales - KGL</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/viewCreditSales.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <img src="../images/logo.png" alt="KGL Logo" class="logo" />
+        <h2>Credit Sales Report</h2>
+        <p>All credit sales from your branch</p>
+      </header>
+
+      <!-- Alert -->
+      <div id="alertBox" class="alert"></div>
+
+      <!-- Search -->
+      <div class="form-group">
+        <label for="searchInput">
+          <i class="fa-solid fa-magnifying-glass"></i> Search Credit Sales
+        </label>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by any field..."
+        />
+      </div>
+
+      <!-- Credit Sales Table -->
+      <table id="creditSalesTable">
+        <thead>
+          <tr>
+            <th>Buyer Name</th>
+            <th>Amount Due (UGX)</th>
+            <th>Sales Agent</th>
+            <th>Due Date</th>
+            <th>Produce Name</th>
+            <th>Produce Type</th>
+            <th>Tonnage (KG)</th>
+            <th>Dispatch Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- JS -->
+    <script src="../js/viewCreditSales.js"></script>
+  </body>
+</html>

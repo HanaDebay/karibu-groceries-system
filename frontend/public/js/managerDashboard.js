@@ -28,7 +28,7 @@ new Chart(document.getElementById("salesChart"), {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     datasets: [{
       label: "Sales (UGX)",
-      data: [800000, 650000, 900000, 700000, 1100000, 950000],
+      data: [900000, 650000, 900000, 700000, 1100000, 950000],
       borderColor: "#2f855a",
       tension: 0.4,
       fill: false
