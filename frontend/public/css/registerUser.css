@@ -1,0 +1,76 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #edf7f1;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+header .logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+form .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+form .form-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+form .form-group input,
+form .form-group select {
+  padding: 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+form .form-group input:focus,
+form .form-group select:focus {
+  outline: none;
+  border-color: #2f855a;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background: #2f855a;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-submit:hover {
+  background: #276749;
+}
+
+@media (max-width: 500px) {
+  .container {
+    padding: 15px 20px;
+  }
+}

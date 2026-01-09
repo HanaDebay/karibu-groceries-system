@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register User - KGL</title>
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/registerUser.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="../images/logo.png" alt="KGL Logo" class="logo" />
+      <h2>Register New User</h2>
+    </header>
+
+    <form id="userForm">
+      <div class="form-group">
+        <label for="username"><i class="fa-solid fa-user"></i> Username</label>
+        <input type="text" id="username" name="username" minlength="2" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+        <input type="password" id="password" name="password" minlength="6" required />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword"><i class="fa-solid fa-lock"></i> Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required />
+      </div>
+
+      <div class="form-group">
+        <label for="role"><i class="fa-solid fa-user-shield"></i> Role</label>
+        <select id="role" name="role" required>
+          <option value="">Select role</option>
+          <option value="manager">Manager</option>
+          <option value="agent">Sales Agent</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="branch"><i class="fa-solid fa-building"></i> Branch</label>
+        <select id="branch" name="branch" required>
+          <option value="">Select Branch</option>
+          <option value="Maganjo">Maganjo</option>
+          <option value="Matugga">Matugga</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <i class="fa-solid fa-floppy-disk"></i> Register User
+      </button>
+    </form>
+  </div>
+
+  <script src="../js/registerUser.js"></script>
+</body>
+</html>
