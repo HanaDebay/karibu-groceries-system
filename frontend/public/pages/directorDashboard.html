@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KGL Director Dashboard</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/directorDashboard.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="logo.png" alt="KGL Logo" />
+            <button class="toggle-btn" id="toggleBtn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        <nav>
+            <a href="#"><i class="fa-solid fa-chart-pie"></i><span> Overview</span></a>
+            <a href="#"><i class="fa-solid fa-money-bill-trend-up"></i><span> Total Sales</span></a>
+            <a href="#"><i class="fa-solid fa-credit-card"></i><span> Credit Overview</span></a>
+            <a href="#"><i class="fa-solid fa-building"></i><span> Branch Performance</span></a>
+            <a href="#"><i class="fa-solid fa-file-lines"></i><span> Reports</span></a>
+            <a href="#"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <h3>Welcome, Director</h3>
+            <span><i class="fa-solid fa-globe"></i> All Branches</span>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="cards">
+            <div class="card">
+                <i class="fa-solid fa-coins"></i>
+                <h4>Total Revenue</h4>
+                <p>UGX 245,000,000</p>
+            </div>
+
+            <div class="card">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <h4>Total Stock (KG)</h4>
+                <p>62,300 KG</p>
+            </div>
+
+            <div class="card">
+                <i class="fa-solid fa-credit-card"></i>
+                <h4>Total Credit Due</h4>
+                <p>UGX 18,400,000</p>
+            </div>
+
+            <div class="card">
+                <i class="fa-solid fa-building"></i>
+                <h4>Active Branches</h4>
+                <p>2</p>
+            </div>
+        </section>
+
+        <section class="cards">
+            <div class="card" onclick="location.href='registerBranch.html'">
+                <i class="fa-solid fa-building"></i>
+                <h4>Register Branch</h4>
+            </div>
+
+            <div class="card" onclick="location.href='registerUser.html'">
+                <i class="fa-solid fa-user-plus"></i>
+                <h4>Register User</h4>
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="charts">
+            <div class="chart-box">
+                <h4>Sales by Branch (UGX)</h4>
+                <canvas id="branchSalesChart"></canvas>
+            </div>
+
+            <div class="chart-box">
+                <h4>Credit vs Cash Sales</h4>
+                <canvas id="creditChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS -->
+    <script src="../js/directorDashboard.js"></script>
+</body>
+
+</html>
