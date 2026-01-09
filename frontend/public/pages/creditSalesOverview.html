@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Credit Overview - KGL</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/creditSalesOverview.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <img src="../images/logo.png" class="logo" />
+      <h2>Credit Overview</h2>
+      <p>Credit risk summary across all branches</p>
+    </header>
+
+    <!-- SUMMARY CARDS -->
+    <section class="cards">
+      <div class="card">
+        <i class="fa-solid fa-credit-card"></i>
+        <h4>Total Credit Outstanding</h4>
+        <p>UGX 18,400,000</p>
+      </div>
+
+      <div class="card danger">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <h4>Overdue Amount</h4>
+        <p>UGX 6,200,000</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-calendar-days"></i>
+        <h4>Due Soon (≤ 30 days)</h4>
+        <p>UGX 4,800,000</p>
+      </div>
+
+      <div class="card">
+        <i class="fa-solid fa-users"></i>
+        <h4>Credit Customers</h4>
+        <p>27</p>
+      </div>
+    </section>
+
+    <!-- CHARTS -->
+    <section class="charts">
+      <div class="chart-box">
+        <h4>Credit Aging Analysis</h4>
+        <canvas id="agingChart"></canvas>
+      </div>
+
+      <div class="chart-box">
+        <h4>Credit by Branch</h4>
+        <canvas id="branchCreditChart"></canvas>
+      </div>
+    </section>
+
+    <!-- HIGH RISK TABLE -->
+    <section>
+      <h3 class="section-title">
+        <i class="fa-solid fa-shield-halved"></i> High Risk Credit Accounts
+      </h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Buyer</th>
+            <th>Branch</th>
+            <th>Amount Due (UGX)</th>
+            <th>Days Overdue</th>
+            <th>Sales Agent</th>
+            <th>Contact</th>
+          </tr>
+        </thead>
+        <tbody id="riskTable">
+          <!-- populated by JS -->
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+
+  <script src="../js/creditSalesOverview.js"></script>
+</body>
+</html>
