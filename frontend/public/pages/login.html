@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KGL Login</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/login.css" />
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <img src="../images/logo.png" alt="KGL Logo" class="logo" />
+
+      <h2>Welcome Back</h2>
+      <p>Login to access the system</p>
+
+      <form id="loginForm">
+        <!-- Username -->
+        <div class="form-group">
+          <label> <i class="fa-solid fa-user"></i> Username </label>
+          <input type="text" id="username" required />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label> <i class="fa-solid fa-lock"></i> Password </label>
+          <input type="password" id="password" required />
+        </div>
+
+        <!-- Role -->
+        <div class="form-group">
+          <label> <i class="fa-solid fa-user-shield"></i> Role </label>
+          <select id="role" required>
+            <option value="">Select role</option>
+            <option value="manager">Manager</option>
+            <option value="agent">Sales Agent</option>
+            <option value="director">Director</option>
+          </select>
+        </div>
+        <div class="form-extra">
+          <label>
+            <input type="checkbox" /> Remember me
+          </label>
+          <a href="#">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="fa-solid fa-right-to-bracket"></i> Login
+        </button>
+      </form>
+
+      <div class="account-info">
+        <p>
+          Don’t have an account?
+          <strong>Contact the Director</strong> to be registered.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="login.js"></script>
+</body>
+
+</html>

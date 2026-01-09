@@ -1,0 +1,156 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: url("../images/bg2.jpg") no-repeat center center/cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.login-container {
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-card {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.15); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 15px;
+  padding: 30px 35px;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); 
+  text-align: center;
+  color: white;
+}
+.login-card h2 {
+  color: #ffffff;
+}
+
+.login-card p {
+  color: #e5e7eb;
+}
+
+.form-group label {
+  color: #ffffff;
+}
+
+.logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #fafcffff;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+}
+.account-info {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.account-info strong {
+  color: #00c853;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2f855a;
+}
+
+.form-extra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.form-extra a {
+  text-decoration: none;
+  color: #038624;
+}
+
+.form-extra a:hover {
+  text-decoration: underline;
+}
+.btn-login {
+  background: #2f855a;
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+
+}
+
+.btn-login:hover {
+  background: #276749;
+}
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e0;
+  font-size: 15px;
+  background: white;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #2f855a;
+}
+
+footer {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 25px;
+  }
+}
