@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register Branch - KGL</title>
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/registerBranch.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="../images/logo.png" alt="KGL Logo" class="logo" />
+      <h2>Register New Branch</h2>
+    </header>
+
+    <form id="branchForm">
+      <div class="form-group">
+        <label for="branchName"><i class="fa-solid fa-building"></i> Branch Name</label>
+        <input type="text" id="branchName" name="branchName" minlength="2" required />
+      </div>
+
+      <div class="form-group">
+        <label for="branchLocation"><i class="fa-solid fa-location-dot"></i> Location</label>
+        <input type="text" id="branchLocation" name="branchLocation" minlength="2" required />
+      </div>
+
+      <div class="form-group">
+        <label for="branchContact"><i class="fa-solid fa-phone"></i> Contact</label>
+        <input type="tel" id="branchContact" name="branchContact" pattern="[0-9]{10,12}" title="Enter a valid phone number" required />
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <i class="fa-solid fa-floppy-disk"></i> Register Branch
+      </button>
+    </form>
+  </div>
+
+  <script src="../js/registerBranch.js"></script>
+</body>
+</html>
