@@ -1,6 +1,7 @@
 //import libraries
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path")
 
 //import cors middleware
 const cors = require("cors");
@@ -10,6 +11,13 @@ require("dotenv").config();
 
 //create an express application
 const app = express();
+
+
+// Set Pug as template engine
+app.set('view engine', 'pug');
+
+// Set the folder where Pug templates are located
+app.set('views', path.join(__dirname, '../frontend/views'));
 
 //tells the express app to use CORS middleware
 app.use(cors());

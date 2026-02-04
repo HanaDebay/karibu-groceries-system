@@ -43,11 +43,12 @@ table {
 table th, table td {
   border: 1px solid #cbd5e0;
   padding: 10px;
-  text-align: center;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
 table th {
-  background: #2f855a;
+  background: #1abc9c;
   color: white;
 }
 

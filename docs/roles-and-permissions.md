@@ -12,4 +12,5 @@ Sales Agent:
 Director:
 - View aggregated reports
 - Manage branches
-- add branhes 
+- add branches 
+- register users

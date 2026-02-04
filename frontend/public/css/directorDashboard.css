@@ -1,8 +1,9 @@
 :root {
-  --primary: #2f855a;
-  --secondary: #edf7f1;
-  --light: #ffffff;
-  --dark: #1a202c;
+  --primary: #2c3e50;        
+  --secondary: #f4f6f8;       
+  --accent: #d4af37;          
+  --light: #ffffff;           
+  --dark: #1a202c;            
 }
 
 * {
@@ -20,12 +21,33 @@ body {
 
 /* Sidebar */
 .sidebar {
+  position: fixed;       /* make it fixed */
+  top: 0;                /* stick to top */
+  left: 0;
+  height: 100vh;         /* full viewport height */
   width: 250px;
   background: var(--primary);
   color: white;
   padding: 20px;
+  overflow-y: auto;      /* allow sidebar scrolling if too long */
   transition: width 0.3s ease;
+  z-index: 100;          /* make sure it's above main content */
 }
+
+.main {
+  flex: 1;
+  padding: 20px;
+  margin-left: 250px;   /* leave space for sidebar */
+  transition: margin-left 0.3s ease;
+  overflow-y: auto;      /* allow content to scroll independently */
+  max-height: 100vh;     /* ensure content scrolls inside viewport */
+}
+
+.sidebar.collapsed + .main {
+  margin-left: 80px;    /* adjust when sidebar collapses */
+}
+
+
 
 .sidebar.collapsed {
   width: 80px;
@@ -63,7 +85,7 @@ body {
 .sidebar nav a {
   display: flex;
   align-items: center;
-  color: white;
+  color: var(--accent);
   text-decoration: none;
   padding: 12px;
   margin: 8px 0;
@@ -123,6 +145,8 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
+  color: var(--accent);
+  font-weight: 900;
 }
 
 .card {
@@ -131,6 +155,11 @@ body {
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  color: var(--accent);
+}
+h4{
+  color: var(--accent);
+  font-weight: 800;
 }
 
 .card i {

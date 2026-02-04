@@ -18,7 +18,7 @@ new Chart(ctx, {
       {
         label: "Sales (UGX)",
         data: [800000, 950000, 700000, 1100000, 1200000, 1550000],
-        borderColor: "#2f855a",
+        borderColor: "#2c3e50",
         backgroundColor: "rgba(47,133,90,0.1)",
         tension: 0.4,
         fill: true,

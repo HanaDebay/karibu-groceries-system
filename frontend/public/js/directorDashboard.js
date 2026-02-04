@@ -11,7 +11,7 @@ new Chart(document.getElementById("branchSalesChart"), {
     datasets: [{
       label: "Sales (UGX)",
       data: [145000000, 100000000],
-      backgroundColor: "#2f855a"
+      backgroundColor: "#2c3e50"
     }]
   },
   options: {
@@ -26,7 +26,7 @@ new Chart(document.getElementById("creditChart"), {
     labels: ["Cash Sales", "Credit Sales"],
     datasets: [{
       data: [226600000, 18400000],
-      backgroundColor: ["#2f855a", "#fc7b7b"]
+      backgroundColor: ["#2c3e50", "#fc7b7b"]
     }]
   },
   options: {
