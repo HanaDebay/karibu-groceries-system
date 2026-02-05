@@ -1,25 +1,31 @@
-const form = document.getElementById("procurementForm");
+// Tabs functionality
+const addBtn = document.getElementById("addProduce-btn");
+const viewBtn = document.getElementById("viewProduce-btn");
+const addTab = document.getElementById("addProduce");
+const viewTab = document.getElementById("viewProduce");
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  // Collect form data
-  const data = {
-    produceName: form.produceName.value,
-    produceType: form.produceType.value,
-    date: form.date.value,
-    time: form.time.value,
-    tonnage: form.tonnage.value,
-    cost: form.cost.value,
-    dealerName: form.dealerName.value,
-    branch: form.branch.value,
-    contact: form.contact.value,
-    sellPrice: form.sellPrice.value
-  };
-
-  console.log("Procurement Data:", data);
-
-  alert("Procurement record saved successfully! (Check console for data)");
-
-  form.reset();
+addBtn.addEventListener("click", () => {
+  addTab.style.display = "block";
+  viewTab.style.display = "none";
+  addBtn.classList.add("active");
+  viewBtn.classList.remove("active");
 });
+
+viewBtn.addEventListener("click", () => {
+  viewTab.style.display = "block";
+  addTab.style.display = "none";
+  viewBtn.classList.add("active");
+  addBtn.classList.remove("active");
+});
+
+function showTab(tabName) {
+  const tabs = document.querySelectorAll(".tab-content");
+  tabs.forEach((tab) => (tab.style.display = "none"));
+
+  document.getElementById(tabName).style.display = "block";
+
+  const buttons = document.querySelectorAll(".tab-btn");
+  buttons.forEach((btn) => btn.classList.remove("active"));
+  document.getElementById(tabName + "-btn").classList.add("active");
+}
+window.onload = () => showTab("addProduce"); // Default tab

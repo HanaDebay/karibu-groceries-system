@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Record Produce Procurement - KGL</title>
+    <title>KGL Procure Produce</title>
 
     <!-- Font Awesome -->
     <link
@@ -15,112 +15,159 @@
     <link rel="stylesheet" href="../css/recordProcurement.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <img src="../images/logo.png" alt="KGL Logo" class="logo" />
-        <h2>Record Produce Procurement</h2>
+    <!-- Main Content -->
+    <main class="main" id="main">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <h3>Procure Produce</h3>
+        <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
       </header>
 
-      <form id="procurementForm">
-        <div class="form-group">
-          <label for="produceName"
-            ><i class="fa-solid fa-seedling"></i> Produce Name</label
-          >
-          <input type="text" id="produceName" name="produceName" required />
-        </div>
-
-        <div class="form-group">
-          <label for="produceType"
-            ><i class="fa-solid fa-tag"></i> Type of Produce</label
-          >
-          <input
-            type="text"
-            id="produceType"
-            name="produceType"
-            pattern="[A-Za-z]{2,}"
-            title="At least 2 letters"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="date"
-            ><i class="fa-solid fa-calendar-days"></i> Date</label
-          >
-          <input type="date" id="date" name="date" required />
-        </div>
-
-        <div class="form-group">
-          <label for="time"><i class="fa-solid fa-clock"></i> Time</label>
-          <input type="time" id="time" name="time" required />
-        </div>
-
-        <div class="form-group">
-          <label for="tonnage"
-            ><i class="fa-solid fa-weight-scale"></i> Tonnage (KG)</label
-          >
-          <input type="number" id="tonnage" name="tonnage" min="100" required />
-        </div>
-
-        <div class="form-group">
-          <label for="cost"><i class="fa-solid fa-coins"></i> Cost (UGX)</label>
-          <input type="number" id="cost" name="cost" min="10000" required />
-        </div>
-
-        <div class="form-group">
-          <label for="dealerName"
-            ><i class="fa-solid fa-user"></i> Dealer Name</label
-          >
-          <input
-            type="text"
-            id="dealerName"
-            name="dealerName"
-            minlength="2"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="branch"
-            ><i class="fa-solid fa-building"></i> Branch</label
-          >
-          <select id="branch" name="branch" required>
-            <option value="">Select Branch</option>
-            <option value="Maganjo">Maganjo</option>
-            <option value="Matugga">Matugga</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="contact"><i class="fa-solid fa-phone"></i> Contact</label>
-          <input
-            type="tel"
-            id="contact"
-            name="contact"
-            pattern="[0-9]{10,12}"
-            title="Enter a valid phone number"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="sellPrice"
-            ><i class="fa-solid fa-dollar-sign"></i> Selling Price (UGX)</label
-          >
-          <input
-            type="number"
-            id="sellPrice"
-            name="sellPrice"
-            min="10000"
-            required
-          />
-        </div>
-
-        <button type="submit" class="btn-submit">
-          <i class="fa-solid fa-floppy-disk"></i> Save Procurement
+      <!-- Tabs -->
+      <section class="cards" style="gap: 10px">
+        <button
+          class="tab-btn active"
+          id="addProduce-btn"
+          onclick="showTab('addProduce')"
+        >
+          <i class="fa-solid fa-plus"></i> Add Produce
         </button>
-      </form>
-    </div>
+        <button
+          class="tab-btn"
+          id="viewProduce-btn"
+          onclick="showTab('viewProduce')"
+        >
+          <i class="fa-solid fa-list"></i> View Procurements
+        </button>
+      </section>
+
+      <!-- Tab Content -->
+      <section>
+        <!-- Add Produce Form -->
+        <div id="addProduce" class="tab-content">
+          <div class="chart-box">
+            <h4>Record New Produce</h4>
+            <form>
+              <label>Produce Name</label>
+              <input type="text" name="name" required placeholder="e.g Beans" />
+
+              <label>Type</label>
+              <input
+                type="text"
+                name="type"
+                required
+                placeholder="e.g Grade A"
+              />
+
+              <label>Date</label>
+              <input type="date" name="date" required />
+
+              <label>Time</label>
+              <input type="time" name="time" required />
+
+              <label>Tonnage (KG)</label>
+              <input
+                type="number"
+                name="tonnage"
+                required
+                min="100"
+                placeholder="e.g 1500"
+              />
+
+              <label>Cost (UGX)</label>
+              <input
+                type="number"
+                name="cost"
+                required
+                min="10000"
+                placeholder="e.g 4500000"
+              />
+
+              <label>Dealer Name</label>
+              <input
+                type="text"
+                name="dealer"
+                required
+                placeholder="e.g John Doe"
+              />
+
+              <label>Branch</label>
+              <select name="branch" required>
+                <option value="Maganjo">Maganjo</option>
+                <option value="Matugga">Matugga</option>
+              </select>
+
+              <label>Contact</label>
+              <input
+                type="tel"
+                name="contact"
+                required
+                placeholder="e.g 0771234567"
+              />
+
+              <label>Selling Price (UGX)</label>
+              <input
+                type="number"
+                name="price"
+                required
+                min="10000"
+                placeholder="e.g 5000"
+              />
+
+              <button type="submit" class="tab-btn" style="margin-top: 10px">
+                Add Produce
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- View Procurements Table -->
+        <div id="viewProduce" class="tab-content" style="display: none">
+          <div class="chart-box">
+            <h4>Procurement Records</h4>
+            <table
+              style="width: 100%; border-collapse: collapse; text-align: left"
+            >
+              <thead style="background: var(--primary); color: var(--light)">
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Date</th>
+                  <th>Tonnage</th>
+                  <th>Cost</th>
+                  <th>Dealer</th>
+                  <th>Branch</th>
+                  <th>Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Beans</td>
+                  <td>Grade A</td>
+                  <td>2026-02-05</td>
+                  <td>1500</td>
+                  <td>4,500,000</td>
+                  <td>John Doe</td>
+                  <td>Matugga</td>
+                  <td>0771234567</td>
+                </tr>
+                <tr>
+                  <td>Maize</td>
+                  <td>Grade B</td>
+                  <td>2026-02-04</td>
+                  <td>2000</td>
+                  <td>3,800,000</td>
+                  <td>Jane Smith</td>
+                  <td>Maganjo</td>
+                  <td>0779876543</td>
+                </tr>
+                <!-- More rows will come from backend -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <!-- JS -->
     <script src="../js/recordProcurement.js"></script>
