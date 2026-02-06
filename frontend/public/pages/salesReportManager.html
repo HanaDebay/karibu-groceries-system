@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KGL Sales Report</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Responsive Utilities CSS -->
+  <link rel="stylesheet" href="../css/responsive-utilities.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/salesReportManager.css" />
+
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <h3>Sales Report - Branch Manager</h3>
+    <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+  </header>
+
+  <!-- Report Controls -->
+  <section class="report-controls">
+    <div class="buttons">
+      <button id="cashBtn" class="active">Cash Sales</button>
+      <button id="creditBtn">Credit Sales</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by Buyer or Produce..." />
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+  </section>
+
+  <!-- Sales Table -->
+  <section class="report-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Produce Name</th>
+          <th>Type</th>
+          <th>Tonnage (KG)</th>
+          <th>Buyer Name</th>
+          <th>Amount Paid (UGX)</th>
+          <th>Sales Agent</th>
+        </tr>
+      </thead>
+      <tbody id="salesBody">
+        <!-- Table rows populated by JS -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- JS -->
+  <script src="../js/responsive-utils.js"></script>
+  <script src="../js/salesReportManager.js"></script>
+</body>
+</html>

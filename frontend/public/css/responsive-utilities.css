@@ -1,0 +1,344 @@
+/**
+ * Responsive Utilities CSS
+ * Shared responsive design patterns for all pages
+ * Ensures consistent mobile-first responsive behavior across the application
+ */
+
+:root {
+  /* Breakpoints - Mobile First Approach */
+  --breakpoint-xs: 320px;    /* Extra small devices */
+  --breakpoint-sm: 480px;    /* Small devices (phones) */
+  --breakpoint-md: 768px;    /* Medium devices (tablets) */
+  --breakpoint-lg: 1024px;   /* Large devices (desktops) */
+  --breakpoint-xl: 1440px;   /* Extra large devices */
+}
+
+/* ==================== RESPONSIVE TEXT UTILITIES ==================== */
+
+/* Responsive Font Sizes */
+@media (max-width: 768px) {
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 18px !important; }
+  h4 { font-size: 16px !important; }
+  h5 { font-size: 14px !important; }
+  p  { font-size: 14px !important; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 16px !important; }
+  h4 { font-size: 14px !important; }
+  h5 { font-size: 12px !important; }
+  p  { font-size: 12px !important; }
+}
+
+/* ==================== RESPONSIVE SPACING UTILITIES ==================== */
+
+/* Padding adjustments for mobile */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+  }
+}
+
+/* ==================== RESPONSIVE LAYOUT UTILITIES ==================== */
+
+/* Flexible containers */
+.responsive-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .responsive-container {
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-container {
+    padding: 0 10px;
+  }
+}
+
+/* Responsive grid */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+@media (max-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+/* Responsive flexbox */
+.responsive-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+@media (max-width: 768px) {
+  .responsive-flex {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-flex {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* ==================== RESPONSIVE FORM UTILITIES ==================== */
+
+/* Form inputs responsive */
+input, textarea, select {
+  max-width: 100%;
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
+@media (max-width: 768px) {
+  input, textarea, select {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  input, textarea, select {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+}
+
+/* ==================== RESPONSIVE TABLE UTILITIES ==================== */
+
+/* Responsive tables */
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .responsive-table table {
+    font-size: 13px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-table {
+    overflow-x: auto;
+  }
+
+  .responsive-table table {
+    font-size: 12px;
+    min-width: 400px;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 6px;
+  }
+}
+
+/* ==================== RESPONSIVE BUTTONS ==================== */
+
+/* Button sizing */
+button, .btn {
+  min-height: 44px; /* Touch-friendly size */
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  button, .btn {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  button, .btn {
+    padding: 10px 12px;
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .btn-group button,
+  .button-group .btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
+
+/* ==================== RESPONSIVE NAVIGATION ==================== */
+
+/* Sidebar responsive */
+.sidebar {
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100% !important;
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100vh;
+    z-index: 999;
+  }
+
+  .sidebar.active {
+    left: 0 !important;
+  }
+
+  .main {
+    margin-left: 0 !important;
+  }
+}
+
+/* ==================== RESPONSIVE MODALS & MODALS ==================== */
+
+@media (max-width: 768px) {
+  .modal {
+    max-width: 90% !important;
+  }
+
+  .modal-content {
+    padding: 15px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    max-width: 95% !important;
+    max-height: 90vh !important;
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    padding: 12px !important;
+  }
+}
+
+/* ==================== RESPONSIVE VISIBILITY ==================== */
+
+/* Hide/show on different breakpoints */
+.hide-mobile {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .hide-mobile {
+    display: block !important;
+  }
+}
+
+@media (min-width: 481px) {
+  .hide-mobile-sm {
+    display: block !important;
+  }
+}
+
+.show-mobile {
+  display: block !important;
+}
+
+@media (min-width: 769px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+.show-tablet {
+  display: none;
+}
+
+@media (min-width: 481px) and (max-width: 1024px) {
+  .show-tablet {
+    display: block !important;
+  }
+}
+
+/* ==================== RESPONSIVE SPACING HELPERS ==================== */
+
+/* Responsive margins */
+@media (max-width: 768px) {
+  .m-mobile { margin: 10px !important; }
+  .mt-mobile { margin-top: 10px !important; }
+  .mb-mobile { margin-bottom: 10px !important; }
+  .p-mobile { padding: 10px !important; }
+  .pt-mobile { padding-top: 10px !important; }
+  .pb-mobile { padding-bottom: 10px !important; }
+}
+
+@media (max-width: 480px) {
+  .m-sm { margin: 8px !important; }
+  .mt-sm { margin-top: 8px !important; }
+  .mb-sm { margin-bottom: 8px !important; }
+  .p-sm { padding: 8px !important; }
+  .pt-sm { padding-top: 8px !important; }
+  .pb-sm { padding-bottom: 8px !important; }
+}
+
+/* ==================== RESPONSIVE IMAGES ==================== */
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ==================== TOUCH FRIENDLY ==================== */
+
+@media (hover: none) {
+  button:active,
+  .clickable:active {
+    opacity: 0.8;
+  }
+}
+
+/* ==================== PRINT STYLES ==================== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .topbar,
+  .sidebar,
+  .navigation {
+    display: none !important;
+  }
+}

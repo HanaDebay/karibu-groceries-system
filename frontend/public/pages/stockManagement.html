@@ -1,92 +1,113 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stock Management - KGL</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KGL | Stock Management</title>
 
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="../css/stock.css" />
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <img src="../images/logo.png" alt="KGL Logo" class="logo" />
-        <h2>Stock Management</h2>
-      </header>
+  <!-- Responsive Utilities CSS -->
+  <link rel="stylesheet" href="../css/responsive-utilities.css" />
 
-      <!-- Low stock alert -->
-      <div id="lowStockAlert" class="alert"></div>
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/stockManagement.css" />
+</head>
 
-      <!-- Stock Table -->
-      <table id="stockTable">
+<body>
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <h3>Stock Management</h3>
+      <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+    </header>
+
+    <!-- Stock Table -->
+    <section class="table-container">
+      <div class="search-row">
+        <input id="stockSearch" type="search" placeholder="Search produce, type or branch..." />
+      </div>
+      <table class="stock-table" id="stockTable">
         <thead>
           <tr>
             <th>Produce</th>
             <th>Type</th>
-            <th>Tonnage (KG)</th>
-            <th>Cost (UGX)</th>
-            <th>Selling Price (UGX)</th>
             <th>Branch</th>
-            <th>Action</th>
+            <th>Tonnage (KG)</th>
+            <th>Price (UGX)</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Data populated dynamically -->
+          <!-- Filled by JS -->
         </tbody>
       </table>
+    </section>
 
-      <!-- Update Stock Modal -->
-      <div id="updateModal" class="modal">
-        <div class="modal-content">
-          <span class="close">&times;</span>
-          <h3>Update Stock</h3>
-          <form id="updateForm">
-            <div class="form-group">
-              <label>Produce Name</label>
-              <input type="text" id="updateProduce" disabled />
-            </div>
-            <div class="form-group">
-              <label>Current Tonnage (KG)</label>
-              <input type="number" id="updateTonnage" min="0" required />
-            </div>
-            <div class="form-group">
-              <label>Selling Price (UGX)</label>
-              <input type="number" id="updatePrice" min="10000" required />
-            </div>
-            <button type="submit" class="btn-submit">
-              <i class="fa-solid fa-floppy-disk"></i> Save Changes
-            </button>
-          </form>
-        </div>
-      </div>
-      <!-- DEACTIVATE MODAL -->
-      <div class="modal" id="deactivateModal">
-        <div class="modal-content">
-          <h3>Deactivate Produce</h3>
-          <p>
-            Are you sure you want to deactivate this produce?
-            <br />
-            <strong>This action cannot be undone.</strong>
-          </p>
+  </main>
 
-          <div class="modal-actions">
-            <button class="danger" id="confirmDeactivate">
-              <i class="fas fa-ban"></i> Deactivate
-            </button>
-            <button class="cancel" onclick="closeDeactivate()">Cancel</button>
-          </div>
+  <!-- JS -->
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal" aria-hidden="true">
+    <div class="modal-content">
+      <header>
+        <h3>Edit Stock</h3>
+        <button class="modal-close" id="editClose">&times;</button>
+      </header>
+      <form id="editForm">
+        <div class="form-row">
+          <label>Produce</label>
+          <input type="text" id="editName" required />
         </div>
-      </div>
+        <div class="form-row">
+          <label>Type</label>
+          <input type="text" id="editType" />
+        </div>
+        <div class="form-row">
+          <label>Branch</label>
+          <select id="editBranch">
+            <option value="Matugga">Matugga</option>
+            <option value="Kampala">Kampala</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Tonnage (KG)</label>
+          <input type="number" id="editTonnage" min="0" />
+        </div>
+        <div class="form-row">
+          <label>Price (UGX)</label>
+          <input type="number" id="editPrice" min="0" />
+        </div>
+        <footer class="modal-actions">
+          <button type="button" class="btn" id="editCancel">Cancel</button>
+          <button type="submit" class="btn edit">Save</button>
+        </footer>
+      </form>
     </div>
+  </div>
 
-    <!-- JS -->
-    <script src="../js/stock.js"></script>
-  </body>
+  <!-- Delete Modal -->
+  <div class="modal" id="deleteModal" aria-hidden="true">
+    <div class="modal-content">
+      <header>
+        <h3>Confirm Delete</h3>
+        <button class="modal-close" id="deleteClose">&times;</button>
+      </header>
+      <div class="modal-body">
+        <p id="deleteMessage">Are you sure you want to delete this stock item?</p>
+      </div>
+      <footer class="modal-actions">
+        <button type="button" class="btn" id="deleteCancel">Cancel</button>
+        <button type="button" class="btn delete" id="deleteConfirm">Delete</button>
+      </footer>
+    </div>
+  </div>
+  <script src="../js/stockManagement.js"></script>
+</body>
 </html>

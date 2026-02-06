@@ -11,6 +11,9 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
 
+    <!-- Responsive Utilities CSS -->
+    <link rel="stylesheet" href="../css/responsive-utilities.css" />
+
     <!-- CSS -->
     <link rel="stylesheet" href="../css/recordProcurement.css" />
   </head>
@@ -44,55 +47,51 @@
       <!-- Tab Content -->
       <section>
         <!-- Add Produce Form -->
+         
         <div id="addProduce" class="tab-content">
+
           <div class="chart-box">
             <h4>Record New Produce</h4>
-            <form>
+            <form id="procureForm">
               <label>Produce Name</label>
-              <input type="text" name="name" required placeholder="e.g Beans" />
+              <input type="text" name="name" id="name"  placeholder="e.g Beans" />
 
               <label>Type</label>
               <input
                 type="text"
-                name="type"
-                required
+                name="type" id="type"
                 placeholder="e.g Grade A"
               />
 
               <label>Date</label>
-              <input type="date" name="date" required />
+              <input type="date" id="date" name="date" />
 
               <label>Time</label>
-              <input type="time" name="time" required />
+              <input type="time" id="time" name="time"  />
 
               <label>Tonnage (KG)</label>
               <input
                 type="number"
-                name="tonnage"
-                required
-                min="100"
+                name="tonnage" id="tonnage"
                 placeholder="e.g 1500"
               />
 
               <label>Cost (UGX)</label>
               <input
                 type="number"
-                name="cost"
-                required
-                min="10000"
+                name="cost" id="cost"
                 placeholder="e.g 4500000"
               />
 
               <label>Dealer Name</label>
               <input
                 type="text"
-                name="dealer"
-                required
+                name="dealer" id="dealer"
                 placeholder="e.g John Doe"
               />
 
               <label>Branch</label>
-              <select name="branch" required>
+              <select name="branch" id="branch">
                 <option value="Maganjo">Maganjo</option>
                 <option value="Matugga">Matugga</option>
               </select>
@@ -100,21 +99,18 @@
               <label>Contact</label>
               <input
                 type="tel"
-                name="contact"
-                required
+                name="contact" id="contact"
                 placeholder="e.g 0771234567"
               />
 
               <label>Selling Price (UGX)</label>
               <input
                 type="number"
-                name="price"
-                required
-                min="10000"
+                name="price" id="price"
                 placeholder="e.g 5000"
               />
 
-              <button type="submit" class="tab-btn" style="margin-top: 10px">
+              <button type="submit" class="tab-btn" id="submit-btn" style="margin-top: 10px">
                 Add Produce
               </button>
             </form>
@@ -168,8 +164,11 @@
         </div>
       </section>
     </main>
-
+  <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
     <!-- JS -->
+    <script src="../js/responsive-utils.js"></script>
     <script src="../js/recordProcurement.js"></script>
+  
   </body>
 </html>

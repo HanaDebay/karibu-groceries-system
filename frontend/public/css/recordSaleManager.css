@@ -1,0 +1,277 @@
+:root {
+  --primary: #2c3e50;
+  --secondary: #f4f6f8;
+  --accent: #d4af37;
+  --light: #ffffff;
+  --dark: #1a202c;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--secondary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Top Bar */
+.topbar {
+  width: 100%;
+  max-width: 900px;
+  background: var(--light);
+  margin: 20px 0;
+  padding: 15px 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.sale-type-toggle {
+  display: flex;
+  gap: 10px;
+  margin: 0 auto 20px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.sale-type-toggle button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--light);
+  background: var(--primary);
+  transition: 0.3s;
+  text-align: center;
+}
+
+.sale-type-toggle button.active {
+  background: var(--accent);
+  color: var(--dark);
+}
+
+.sale-type-toggle button:hover,
+.sale-type-toggle button.active:hover {
+  background: var(--accent);
+  color: var(--dark);
+}
+
+.form-container {
+  width: 100%;
+  max-width: 900px;
+  background: var(--light);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.sale-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sale-form.hidden {
+  display: none;
+}
+
+.sale-form h4 {
+  color: var(--primary);
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.form-group input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  color: var(--light);
+  font-weight: 600;
+  background: green;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+
+.toast.error {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+.submit-btn {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: var(--light);
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover {
+  background: #b9962f;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px auto;
+    padding: 12px 15px;
+  }
+
+  .topbar span {
+    font-size: 14px;
+  }
+
+  .sale-type-toggle {
+    margin-bottom: 15px;
+    padding: 0 10px;
+  }
+
+  .sale-type-toggle button {
+    padding: 12px 5px;
+    font-size: 14px;
+  }
+
+  .form-container {
+    max-width: 100%;
+    padding: 20px 15px;
+    margin: 0 auto;
+  }
+
+  .sale-form h4 {
+    font-size: 18px;
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    font-size: 14px;
+  }
+
+  .form-group input {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .submit-btn {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .toast {
+    min-width: 200px;
+    right: 10px;
+    left: 10px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 10px;
+    flex-direction: column;
+  }
+
+  .topbar h3 {
+    font-size: 18px;
+  }
+
+  .topbar span {
+    font-size: 12px;
+  }
+
+  .sale-type-toggle {
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 auto 15px;
+    width: 100%;
+    padding: 0;
+  }
+
+  .sale-type-toggle button {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 13px;
+  }
+
+  .form-container {
+    padding: 15px 12px;
+    max-width: 100%;
+  }
+
+  .sale-form {
+    gap: 12px;
+  }
+
+  .sale-form h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
+
+  .form-group input {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .submit-btn {
+    padding: 10px;
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  .toast {
+    min-width: 90%;
+    right: 5%;
+    left: 5%;
+    font-size: 12px;
+    padding: 10px 15px;
+  }
+}

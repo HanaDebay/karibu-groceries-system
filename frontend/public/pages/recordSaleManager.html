@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Record Sale - KGL Manager</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Responsive Utilities CSS -->
+    <link rel="stylesheet" href="../css/responsive-utilities.css" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/recordSaleManager.css" />
+</head>
+
+<body>
+
+    <!-- Top Bar -->
+    <header class="topbar">
+        <h3>Record Sale</h3>
+        <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+    </header>
+
+    <!-- Sale Type Toggle -->
+    <section class="sale-type-toggle">
+        <button id="cashBtn"  class="active">Cash Sale</button>
+        <button id="creditBtn" >Credit Sale</button>
+    </section>
+
+    <!-- Form Container -->
+    <main class="form-container">
+
+        <!-- Cash Sale Form -->
+        <form id="cashSaleForm" class="sale-form">
+            <h4>Cash Sale</h4>
+
+            <div class="form-group">
+                <label for="produceNameCash">Produce Name</label>
+                <input type="text" id="produceNameCash" name="produceName" placeholder="Enter produce name" >
+            </div>
+
+            <div class="form-group">
+                <label for="tonnageCash">Tonnage (KG)</label>
+                <input type="number" id="tonnageCash" name="tonnage" placeholder="Enter tonnage"  >
+            </div>
+
+            <div class="form-group">
+                <label for="amountPaidCash">Amount Paid (UGX)</label>
+                <input type="number" id="amountPaidCash" name="amountPaid" placeholder="Enter amount"  >
+            </div>
+
+            <div class="form-group">
+                <label for="buyerNameCash">Buyer Name</label>
+                <input type="text" id="buyerNameCash" name="buyerName" placeholder="Enter buyer name" >
+            </div>
+
+            <div class="form-group">
+                <label for="salesAgentCash">Sales Agent</label>
+                <input type="text" id="salesAgentCash" name="salesAgent" placeholder="Your name" >
+            </div>
+
+            <div class="form-group">
+                <label for="dateCash">Date</label>
+                <input type="date" id="dateCash" name="date" >
+            </div>
+
+            <div class="form-group">
+                <label for="timeCash">Time</label>
+                <input type="time" id="timeCash" name="time" >
+            </div>
+
+            <button type="submit" class="submit-btn">Record Cash Sale</button>
+        </form>
+
+        <!-- Credit Sale Form -->
+        <form id="creditSaleForm" class="sale-form hidden">
+            <h4>Credit Sale</h4>
+
+            <div class="form-group">
+                <label for="buyerNameCredit">Buyer Name</label>
+                <input type="text" id="buyerNameCredit" name="buyerName" placeholder="Enter buyer name" >
+            </div>
+
+            <div class="form-group">
+                <label for="nationalIdCredit">National ID (NIN)</label>
+                <input type="text" id="nationalIdCredit" name="nationalId" placeholder="Enter NIN" >
+            </div>
+
+            <div class="form-group">
+                <label for="locationCredit">Location</label>
+                <input type="text" id="locationCredit" name="location" placeholder="Enter location" >
+            </div>
+
+            <div class="form-group">
+                <label for="contactCredit">Contact</label>
+                <input type="tel" id="contactCredit" name="contact" placeholder="Enter phone number" >
+            </div>
+
+            <div class="form-group">
+                <label for="produceNameCredit">Produce Name</label>
+                <input type="text" id="produceNameCredit" name="produceName" placeholder="Enter produce name" >
+            </div>
+
+            <div class="form-group">
+                <label for="typeCredit">Produce Type</label>
+                <input type="text" id="typeCredit" name="type" placeholder="Enter type" >
+            </div>
+
+            <div class="form-group">
+                <label for="tonnageCredit">Tonnage (KG)</label>
+                <input type="number" id="tonnageCredit" name="tonnage" placeholder="Enter tonnage" >
+            </div>
+
+            <div class="form-group">
+                <label for="amountDueCredit">Amount Due (UGX)</label>
+                <input type="number" id="amountDueCredit" name="amountDue" placeholder="Enter amount"  >
+            </div>
+
+            <div class="form-group">
+                <label for="salesAgentCredit">Sales Agent</label>
+                <input type="text" id="salesAgentCredit" name="salesAgent" placeholder="Your name" >
+            </div>
+
+            <div class="form-group">
+                <label for="dueDateCredit">Due Date</label>
+                <input type="date" id="dueDateCredit" name="dueDate" >
+            </div>
+
+            <div class="form-group">
+                <label for="dispatchDateCredit">Dispatch Date</label>
+                <input type="date" id="dispatchDateCredit" name="dispatchDate" >
+            </div>
+
+            <button type="submit" class="submit-btn">Record Credit Sale</button>
+        </form>
+
+    </main>
+  <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+    <!-- JS -->
+    <script src="../js/responsive-utils.js"></script>
+    <script src="../js/recordSaleManager.js"></script>
+</body>
+
+</html>

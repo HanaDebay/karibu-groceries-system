@@ -19,20 +19,7 @@ body {
   background: var(--secondary);
 }
 
-/* Sidebar */
-.sidebar {
-  position: fixed; /* make it fixed */
-  top: 0; /* stick to top */
-  left: 0;
-  height: 100vh; /* full viewport height */
-  width: 250px;
-  background: var(--primary);
-  color: white;
-  padding: 20px;
-  overflow-y: auto; /* allow sidebar scrolling if too long */
-  transition: width 0.3s ease;
-  z-index: 100; /* make sure it's above main content */
-}
+
 
 .main {
   flex: 1;
@@ -223,6 +210,37 @@ table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
 }
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 250px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.4s ease;
+  z-index: 999;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.success {
+  background: #2ecc71; /* green */
+}
+
+.toast.error {
+  background: #e74c3c; /* red */
+}
+
 
 /* Mobile */
 @media (max-width: 768px) {
