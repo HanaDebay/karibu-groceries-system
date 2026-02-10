@@ -1,0 +1,86 @@
+:root {
+  --primary: #2c3e50;
+  --secondary: #f4f6f8;
+  --accent: #d4af37;
+  --light: #ffffff;
+  --dark: #1a202c;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--secondary);
+}
+
+.main {
+  padding: 20px;
+}
+
+/* Topbar */
+.topbar {
+  background: var(--light);
+  padding: 15px 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.topbar h3 {
+  color: var(--primary);
+}
+
+/* Search */
+.search-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.search-row input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  width: 300px;
+}
+
+/* Table container */
+.table-container {
+  background: var(--light);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+  overflow-x: auto;
+}
+
+/* Table */
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stock-table thead {
+  background: var(--primary);
+  color: var(--accent);
+}
+
+.stock-table th,
+.stock-table td {
+  padding: 14px;
+  text-align: left;
+}
+
+.stock-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* Footer */
+tfoot {
+  background: #f4f6f8;
+  font-weight: bold;
+}

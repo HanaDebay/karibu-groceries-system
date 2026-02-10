@@ -1,42 +1,44 @@
-// Sidebar Toggle
+// Sidebar toggle
 const toggleBtn = document.getElementById("toggleBtn");
 const sidebar = document.getElementById("sidebar");
 
 toggleBtn.addEventListener("click", () => {
   sidebar.classList.toggle("collapsed");
-  sidebar.classList.toggle("active");
 });
 
-// Sales Line Chart
-const ctx = document.getElementById("mySalesChart");
+// Weekly Sales Chart
+const weeklySalesCtx = document.getElementById("weeklySalesChart");
 
-new Chart(ctx, {
+new Chart(weeklySalesCtx, {
   type: "line",
   data: {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    datasets: [
-      {
-        label: "Sales (UGX)",
-        data: [800000, 950000, 700000, 1100000, 1200000, 1550000],
-        borderColor: "#2c3e50",
-        backgroundColor: "rgba(47,133,90,0.1)",
-        tension: 0.4,
-        fill: true,
-        borderWidth: 2
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
+    datasets: [{
+      label: "Sales (UGX)",
+      data: [200000, 350000, 150000, 400000, 250000, 300000],
+      borderColor: "#2c3e50",  
+      backgroundColor: "#2c3e50", 
+      borderWidth: 3,
+      tension: 0.4,
+      pointBackgroundColor: "#2c3e50", 
+      pointBorderColor: "#2c3e50" 
+    }]
+  }
+});
+
+
+// Produce Breakdown Chart
+const produceCtx = document.getElementById("produceChart");
+
+new Chart(produceCtx, {
+  type: "bar",
+  data: {
+    labels: ["Beans", "Maize", "Soybeans", "G-Nuts", "Cow Peas"],
+    datasets: [{
+      label: "KG Sold",
+      data: [800, 500, 300, 200, 300],
+      borderWidth: 1,
+      backgroundColor: "#2c3e50"
+    }]
   }
 });

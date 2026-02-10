@@ -109,8 +109,8 @@ form.addEventListener("submit", function (e) {
   if (!time)
     return showToast("Time is required", "error");
 
-  if (isNaN(tonnage) || tonnage < 100)
-    return showToast("Tonnage must be at least 100 KG", "error");
+  if (isNaN(tonnage) || tonnage < 1000)
+    return showToast("Tonnage must be at least 1000 KG", "error");
 
   if (isNaN(cost) || cost < 10000)
     return showToast("Cost must be at least UGX 10,000", "error");

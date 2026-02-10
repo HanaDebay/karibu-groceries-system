@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KGL | My Sales</title>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/mySalesSalesAgent.css" />
+  </head>
+
+  <body>
+    <main class="main">
+      <!-- Topbar -->
+      <header class="topbar">
+        <h3>My Sales</h3>
+        <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+      </header>
+
+      <!-- Sales Table -->
+      <section class="table-container">
+        <section class="search-row">
+          <input
+            id="salesSearch"
+            type="search"
+            placeholder="Search by produce, buyer, or date..."
+          />
+        </section>
+        <table class="stock-table" id="salesTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Produce</th>
+              <th>KG Sold</th>
+              <th>Buyer</th>
+              <th>Amount (UGX)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled dynamically -->
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="2">TOTAL</th>
+              <th id="totalKg">0</th>
+              <th></th>
+              <th id="totalAmount">0</th>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+    </main>
+
+    <!-- JS -->
+    <script src="../js/mySalesSalesAgents.js"></script>
+  </body>
+</html>

@@ -52,7 +52,7 @@ function validateCashSale(form) {
         return 'All fields are required';
     }
     if (!isAlphanumeric.test(produceName) || produceName.length < 2) return 'Produce name must be at least 2 characters and cannot contain special characters';
-    if (isNaN(tonnage) || tonnage <= 100) return 'Tonnage must be greater than 100 KG';
+    if (isNaN(tonnage) || tonnage <= 1000) return 'Tonnage must be greater than or equal 1000 KG';
     if (!amountPaid || isNaN(amountPaid)) return 'Amount Paid must be a valid number ';
     if (buyerName.length < 2) return 'Buyer name must be at least 2 characters';
     if (salesAgent.length < 2 || !salesAgent) return 'Sales agent name is required and must be at least 2 characters';
