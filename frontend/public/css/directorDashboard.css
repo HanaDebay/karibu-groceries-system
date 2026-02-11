@@ -1,9 +1,9 @@
 :root {
-  --primary: #2c3e50;        
-  --secondary: #f4f6f8;       
-  --accent: #d4af37;          
-  --light: #ffffff;           
-  --dark: #1a202c;            
+  --primary: #2c3e50;
+  --secondary: #f4f6f8;
+  --accent: #d4af37;
+  --light: #ffffff;
+  --dark: #1a202c;
 }
 
 * {
@@ -21,65 +21,42 @@ body {
 
 /* Sidebar */
 .sidebar {
-  position: fixed;       /* make it fixed */
-  top: 0;                /* stick to top */
-  left: 0;
-  height: 100vh;         /* full viewport height */
   width: 250px;
   background: var(--primary);
   color: white;
   padding: 20px;
-  overflow-y: auto;      /* allow sidebar scrolling if too long */
   transition: width 0.3s ease;
-  z-index: 100;          /* make sure it's above main content */
 }
-
-.main {
-  flex: 1;
-  padding: 20px;
-  margin-left: 250px;   /* leave space for sidebar */
-  transition: margin-left 0.3s ease;
-  overflow-y: auto;      /* allow content to scroll independently */
-  max-height: 100vh;     /* ensure content scrolls inside viewport */
-}
-
-.sidebar.collapsed + .main {
-  margin-left: 80px;    /* adjust when sidebar collapses */
-}
-
-
 
 .sidebar.collapsed {
   width: 80px;
 }
 
+.sidebar.collapsed nav span {
+  display: none;
+}
 
+.sidebar.collapsed nav a {
+  justify-content: center;
+}
+
+.sidebar.collapsed nav a i {
+  margin-right: 0;
+}
 
 .logo {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  align-items: center;
   margin-bottom: 30px;
 }
 
 .logo img {
   width: 30px;
   height: 30px;
-  border-radius: 50%;   
-  object-fit: cover;    
-  background: white;    
-  padding: 2px; 
-}
-
-.logo span {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.sidebar.collapsed .logo span,
-.sidebar.collapsed nav span {
-  display: none;
+  border-radius: 50%;
+  background: white;
+  padding: 2px;
 }
 
 .sidebar nav a {
@@ -90,7 +67,6 @@ body {
   padding: 12px;
   margin: 8px 0;
   border-radius: 6px;
-  transition: background 0.3s;
 }
 
 .sidebar nav a i {
@@ -105,37 +81,15 @@ body {
 .main {
   flex: 1;
   padding: 20px;
-  transition: margin-left 0.3s ease;
 }
 
-/* Top Bar */
+/* Topbar */
 .topbar {
   background: var(--light);
   padding: 15px;
   border-radius: 8px;
   display: flex;
-  align-items: center;
-  gap: 15px;
   justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.toggle-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-}
-/* Alert */
-.alert {
-  background: #fed7d7;
-  color: #742a2a;
-  padding: 12px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
   margin-bottom: 20px;
 }
 
@@ -145,8 +99,6 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
-  color: var(--accent);
-  font-weight: 900;
 }
 
 .card {
@@ -155,17 +107,21 @@ body {
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  color: var(--accent);
-}
-h4{
-  color: var(--accent);
-  font-weight: 800;
 }
 
 .card i {
-  font-size: 30px;
+  font-size: 28px;
   color: var(--primary);
   margin-bottom: 10px;
+}
+
+.card h4 {
+  color: var(--accent);
+}
+
+.card p {
+  font-weight: bold;
+  color: var(--dark);
 }
 
 /* Charts */
@@ -181,16 +137,25 @@ h4{
   border-radius: 10px;
 }
 
+.toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
     height: 100%;
-    z-index: 100;
     left: -250px;
+    z-index: 100;
   }
 
   .sidebar.active {
     left: 0;
   }
 }
+

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KGL | Administration</title>
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <link rel="stylesheet" href="../css/administration.css" />
+</head>
+
+<body>
+
+<main class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <h3>Administration Panel</h3>
+    <span><i class="fa-solid fa-user-gear"></i> Director Access</span>
+  </header>
+
+  <!-- Tabs -->
+  <div class="toggle-container">
+  <button id="usersBtn" class="toggle-btn active" onclick="switchAdminView('users')">
+    <i class="fa-solid fa-users"></i> User Management
+  </button>
+
+  <button id="branchesBtn" class="toggle-btn" onclick="switchAdminView('branches')">
+    <i class="fa-solid fa-building"></i> Branch Management
+  </button>
+</div>
+
+
+  <!-- USERS SECTION -->
+  <section id="usersSection" class="tab-content active">
+
+    <div class="action-bar">
+      <button class="btn primary" onclick="addUser()">
+        <i class="fa-solid fa-user-plus"></i> Add User
+      </button>
+      <input type="search" id="userSearch" placeholder="Search user..." />
+    </div>
+
+    <table class="admin-table" id="userTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Branch</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </section>
+
+  <!-- BRANCH SECTION -->
+  <section id="branchesSection" style="display: none;">
+
+    <div class="action-bar">
+      <button class="btn primary" onclick="addBranch()">
+        <i class="fa-solid fa-plus"></i> Add Branch
+      </button>
+      <input type="search" id="branchSearch" placeholder="Search branch..." />
+    </div>
+
+    <table class="admin-table" id="branchTable">
+      <thead>
+        <tr>
+          <th>Branch Name</th>
+          <th>Location</th>
+          <th>Manager</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </section>
+
+</main>
+
+<script src="../js/administration.js"></script>
+</body>
+</html>

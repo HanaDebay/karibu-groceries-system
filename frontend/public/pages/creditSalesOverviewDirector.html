@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KGL | Credit Overview</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/creditSalesOverviewDirector.css" />
+</head>
+
+<body>
+
+  <main class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <h3>Credit Overview</h3>
+      <span><i class="fa-solid fa-building"></i> All Branches</span>
+    </header>
+
+    <!-- Summary Cards -->
+    <section class="cards">
+      <div class="card">
+        <h4>Total Credit</h4>
+        <p id="totalCredit">UGX 0</p>
+      </div>
+
+      <div class="card">
+        <h4>Overdue Amount</h4>
+        <p id="overdueAmount">UGX 0</p>
+      </div>
+
+      <div class="card">
+        <h4>Pending Amount</h4>
+        <p id="pendingAmount">UGX 0</p>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="table-container">
+
+      <div class="search-row">
+        <input id="creditSearch" type="search" placeholder="Search buyer, branch, agent..." />
+      </div>
+
+      <table class="stock-table" id="creditTable">
+        <thead>
+          <tr>
+            <th>Buyer</th>
+            <th>Branch</th>
+            <th>Agent</th>
+            <th>Produce</th>
+            <th>Amount Due</th>
+            <th>Due Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+
+    </section>
+
+  </main>
+
+  <script src="../js/creditSalesOverviewDirector.js"></script>
+</body>
+</html>

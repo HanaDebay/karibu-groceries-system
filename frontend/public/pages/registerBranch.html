@@ -1,52 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register Branch - KGL</title>
-
-  <!-- Font Awesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-  />
-
-  <!-- Responsive Utilities CSS -->
-  <link rel="stylesheet" href="../css/responsive-utilities.css" />
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="../css/registerBranch.css" />
+    <meta charset="UTF-8">
+    <title>Register Branch</title>
+    <link rel="stylesheet" href="../css/registerBranch.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
 </head>
 <body>
-  <div class="container">
-    <header>
-      <img src="../images/logo.png" alt="KGL Logo" class="logo" />
-      <h2>Register New Branch</h2>
-    </header>
 
-    <form id="branchForm">
-      <div class="form-group">
-        <label for="branchName"><i class="fa-solid fa-building"></i> Branch Name</label>
-        <input type="text" id="branchName" name="branchName" minlength="2" required />
-      </div>
+<div class="main-content">
 
-      <div class="form-group">
-        <label for="branchLocation"><i class="fa-solid fa-location-dot"></i> Location</label>
-        <input type="text" id="branchLocation" name="branchLocation" minlength="2" required />
-      </div>
+    <h2>Register New Branch</h2>
 
-      <div class="form-group">
-        <label for="branchContact"><i class="fa-solid fa-phone"></i> Contact</label>
-        <input type="tel" id="branchContact" name="branchContact" pattern="[0-9]{10,12}" title="Enter a valid phone number" required />
-      </div>
+    <div class="form-card">
+        <form id="branchForm">
 
-      <button type="submit" class="btn-submit">
-        <i class="fa-solid fa-floppy-disk"></i> Register Branch
-      </button>
-    </form>
-  </div>
+            <div class="form-group">
+                <label>Branch Name</label>
+                <input type="text" id="branchName" placeholder="Enter branch name" required>
+            </div>
 
-  <script src="../js/responsive-utils.js"></script>
-  <script src="../js/registerBranch.js"></script>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="location" placeholder="Enter location" required>
+            </div>
+
+            <div class="form-group">
+                <label>Manager</label>
+                <input type="text" id="manager" placeholder="Assign manager name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Contact</label>
+                <input type="text" id="contact" placeholder="Enter contact number" required>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fa-solid fa-building"></i> Register Branch
+            </button>
+
+        </form>
+    </div>
+
+</div>
+
+<script src="../js/registerBranch.js"></script>
 </body>
 </html>

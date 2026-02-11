@@ -1,70 +1,72 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register User - KGL</title>
-
-  <!-- Font Awesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-  />
-
-  <!-- Responsive Utilities CSS -->
-  <link rel="stylesheet" href="../css/responsive-utilities.css" />
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="../css/registerUser.css" />
+    <meta charset="UTF-8">
+    <title>Register User</title>
+    <link rel="stylesheet" href="../css/registerUser.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <img src="../images/logo.png" alt="KGL Logo" class="logo" />
-      <h2>Register New User</h2>
-    </header>
 
-    <form id="userForm">
-      <div class="form-group">
-        <label for="username"><i class="fa-solid fa-user"></i> Username</label>
-        <input type="text" id="username" name="username" minlength="2" required />
-      </div>
+<div class="main-content">
 
-      <div class="form-group">
-        <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
-        <input type="password" id="password" name="password" minlength="6" required />
-      </div>
+    <h2>Register New User</h2>
 
-      <div class="form-group">
-        <label for="confirmPassword"><i class="fa-solid fa-lock"></i> Confirm Password</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required />
-      </div>
+    <div class="form-card">
+        <form id="userForm">
 
-      <div class="form-group">
-        <label for="role"><i class="fa-solid fa-user-shield"></i> Role</label>
-        <select id="role" name="role" required>
-          <option value="">Select role</option>
-          <option value="manager">Manager</option>
-          <option value="agent">Sales Agent</option>
-        </select>
-      </div>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" placeholder="Enter full name" required>
+            </div>
 
-      <div class="form-group">
-        <label for="branch"><i class="fa-solid fa-building"></i> Branch</label>
-        <select id="branch" name="branch" required>
-          <option value="">Select Branch</option>
-          <option value="Maganjo">Maganjo</option>
-          <option value="Matugga">Matugga</option>
-        </select>
-      </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="Enter email" required>
+            </div>
 
-      <button type="submit" class="btn-submit">
-        <i class="fa-solid fa-floppy-disk"></i> Register User
-      </button>
-    </form>
-  </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="role" required>
+                    <option value="">Select role</option>
+                    <option value="Director">Director</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Sales Agent">Sales Agent</option>
+                </select>
+            </div>
 
-  <script src="../js/responsive-utils.js"></script>
-  <script src="../js/registerUser.js"></script>
+            <div class="form-group">
+                <label>Branch</label>
+                <select id="branch" required>
+                    <option value="">Select branch</option>
+                    <option value="Kampala">Matugga</option>
+                    <option value="Entebbe">Maganjo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+                <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+            </div>
+        
+            <div class="form-group">
+                <label>Profile Picture</label>
+                <input type="file" id="profilePicture" accept="image/*">
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fa-solid fa-user-plus"></i> Register User
+            </button>
+
+        </form>
+    </div>
+
+</div>
+
+<script src="../js/registerUser.js"></script>
 </body>
 </html>

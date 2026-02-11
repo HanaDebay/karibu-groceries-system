@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KGL | Stock Overview</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/stockOverviewDirector.css" />
+</head>
+
+<body>
+
+  <main class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <h3>Stock Overview</h3>
+      <span><i class="fa-solid fa-warehouse"></i> All Branches</span>
+    </header>
+
+    <!-- Table -->
+    <section class="table-container">
+
+      <div class="search-row">
+        <input id="stockSearch" type="search" placeholder="Search produce, branch..." />
+      </div>
+
+      <table class="stock-table" id="stockTable">
+        <thead>
+          <tr>
+            <th>Produce</th>
+            <th>Type</th>
+            <th>Branch</th>
+            <th>Available (KG)</th>
+            <th>Buying Price</th>
+            <th>Selling Price</th>
+            <th>Stock Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+
+    </section>
+
+  </main>
+
+  <script src="../js/stockOverviewDirector.js"></script>
+</body>
+</html>
