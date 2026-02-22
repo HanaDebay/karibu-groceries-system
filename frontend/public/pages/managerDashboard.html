@@ -33,14 +33,13 @@
         </div>
 
         <nav>
-            <a href="#"><i class="fa-solid fa-chart-line"></i><span> Dashboard</span></a>
-            <a href="recordProcurment.html"><i class="fa-solid fa-box"></i><span> Procure Produce</span></a>
-            <!-- <a href="#"><i class="fa-solid fa-cart-shopping"></i><span> Record Sales</span></a> -->
-            <a href="stockManagement.html"><i class="fa-solid fa-warehouse"></i><span> Stock Management</span></a>
-            <a href="salesReportManager.html"><i class="fa-solid fa-credit-card"></i><span> Sales Report</span></a>
-            <a href="recordSaleManager.html"><i class="fa-solid fa-cart-shopping"></i><span> Record Sales</span></a>
-            <a href="#"><i class="fa-solid fa-gear"></i><span> Settings</span></a>
-            <a href="#"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
+            <a href="#" onclick="showDashboard(event)" class="active"><i class="fa-solid fa-chart-line"></i><span> Dashboard</span></a>
+            <a href="#" onclick="loadPage(event, 'recordProcurment.html')"><i class="fa-solid fa-box"></i><span> Procure Produce</span></a>
+            <a href="#" onclick="loadPage(event, 'stockManagement.html')"><i class="fa-solid fa-warehouse"></i><span> Stock Management</span></a>
+            <a href="#" onclick="loadPage(event, 'salesReportManager.html')"><i class="fa-solid fa-credit-card"></i><span> Sales Report</span></a>
+            <a href="#" onclick="loadPage(event, 'recordSaleManager.html')"><i class="fa-solid fa-cart-shopping"></i><span> Record Sales</span></a>
+            <a href="#"><i class="fa-solid fa-gear"></i><span> Settings</span></a> <!-- Assuming settings is a future feature or modal -->
+            <a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
         </nav>
     </aside>
 
@@ -48,10 +47,11 @@
     <!-- Main Content -->
     <main class="main" id="main">
 
+        <div id="dashboard-content">
         <!-- Top Bar -->
         <header class="topbar">
-            <h3>Welcome, Branch Manager</h3>
-            <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+            <h3 id="welcome-msg">Welcome, Branch Manager</h3>
+            <span id="branch-info"><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
         </header>
 
         <!-- Summary Cards -->
@@ -93,14 +93,42 @@
                 <canvas id="salesChart"></canvas>
             </div>
         </section>
+        </div>
 
-
-        
+        <!-- Iframe for other pages -->
+        <iframe id="content-frame" style="display: none; width: 100%; height: 100vh; border: none;"></iframe>
     </main>
 
     <!-- JS -->
     <!-- <script src="../js/responsive-utils.js"></script> -->
     <script src="../js/managerDashboard.js"></script>
+    <script>
+      function showDashboard(e) {
+        if(e) e.preventDefault();
+        document.getElementById('dashboard-content').style.display = 'block';
+        document.getElementById('content-frame').style.display = 'none';
+        updateActiveLink(e.currentTarget);
+      }
+
+      function loadPage(e, url) {
+        if(e) e.preventDefault();
+        document.getElementById('dashboard-content').style.display = 'none';
+        const frame = document.getElementById('content-frame');
+        frame.style.display = 'block';
+        frame.src = url;
+        updateActiveLink(e.currentTarget);
+      }
+
+      function updateActiveLink(element) {
+        document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+      }
+
+      function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    </script>
 </body>
 
 </html>

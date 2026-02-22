@@ -27,21 +27,23 @@
     </div>
 
     <nav>
-      <a href="#"><i class="fa-solid fa-chart-line"></i><span> Dashboard</span></a>
-      <a href="recordSaleSalesAgent.html"><i class="fa-solid fa-cart-shopping"></i><span> Record Sale</span></a>
-      <a href="stockViewSalesAgent.html"><i class="fa-solid fa-warehouse"></i><span> View Stock</span></a>
-      <a href="mySalesSalesAgent.html"><i class="fa-solid fa-receipt"></i><span> My Sales</span></a>
-      <a href="#"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
+      <a href="#" onclick="showDashboard(event)" class="active"><i class="fa-solid fa-chart-line"></i><span> Dashboard</span></a>
+      <a href="#" onclick="loadPage(event, 'recordSaleSalesAgent.html')"><i class="fa-solid fa-cart-shopping"></i><span> Record Sale</span></a>
+      <a href="#" onclick="loadPage(event, 'stockViewSalesAgent.html')"><i class="fa-solid fa-warehouse"></i><span> View Stock</span></a>
+      <a href="#" onclick="loadPage(event, 'mySalesSalesAgent.html')"><i class="fa-solid fa-receipt"></i><span> My Sales</span></a>
+      <a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
     </nav>
   </aside>
 
   <!-- Main Content -->
   <main class="main" id="main">
 
+    <div id="dashboard-content">
+
     <!-- Top Bar -->
     <header class="topbar">
-      <h3>Welcome, Sales Agent</h3>
-      <span><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
+      <h3 id="welcome-msg">Welcome, Sales Agent</h3>
+      <span id="branch-info"><i class="fa-solid fa-location-dot"></i> Matugga Branch</span>
     </header>
 
     <!-- Summary Cards -->
@@ -83,10 +85,41 @@
         <canvas id="produceChart"></canvas>
       </div>
     </section>
+    </div>
+
+    <!-- Iframe for other pages -->
+    <iframe id="content-frame" style="display: none; width: 100%; height: 100vh; border: none;"></iframe>
 
   </main>
 
   <!-- JS -->
   <script src="../js/salesAgentDashboard.js"></script>
+  <script>
+      function showDashboard(e) {
+        if(e) e.preventDefault();
+        document.getElementById('dashboard-content').style.display = 'block';
+        document.getElementById('content-frame').style.display = 'none';
+        updateActiveLink(e.currentTarget);
+      }
+
+      function loadPage(e, url) {
+        if(e) e.preventDefault();
+        document.getElementById('dashboard-content').style.display = 'none';
+        const frame = document.getElementById('content-frame');
+        frame.style.display = 'block';
+        frame.src = url;
+        updateActiveLink(e.currentTarget);
+      }
+
+      function updateActiveLink(element) {
+        document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+      }
+
+      function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    </script>
 </body>
 </html>

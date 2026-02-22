@@ -16,6 +16,7 @@ viewBtn.addEventListener("click", () => {
   addTab.style.display = "none";
   viewBtn.classList.add("active");
   addBtn.classList.remove("active");
+  fetchProcurements(); // Fetch data when tab is opened
 });
 
 function showTab(tabName) {
@@ -76,7 +77,7 @@ function showTab(tabName) {
 
 
 /* Form Validation */
-form.addEventListener("submit", function (e) {
+form.addEventListener("submit", async function (e) {
   e.preventDefault();
   
 
@@ -89,11 +90,11 @@ form.addEventListener("submit", function (e) {
   const dealer = document.getElementById("dealer").value.trim();
   const branch = document.getElementById("branch").value;
   const contact = document.getElementById("contact").value.trim();
-  const price = document.getElementById("price").value;
+  const sellingPrice = document.getElementById("price").value;
 
 
   // Validation checks
-  if(!name || !type || !date || !time || !tonnage || !cost || !dealer || !branch || !contact || !price) {
+  if(!name || !type || !date || !time || !tonnage || !cost || !dealer || !branch || !contact || !sellingPrice) {
     return showToast("All fields are required", "error");
   }
 
@@ -124,11 +125,76 @@ form.addEventListener("submit", function (e) {
   if (!isValidPhone(contact))
     return showToast("Invalid phone number (07XXXXXXXX)", "error");
 
-  if (isNaN(price) || price > cost )
-    return showToast(`Selling price must be less than cost (${cost})`, "error");
+  if (isNaN(sellingPrice) || Number(sellingPrice) <= Number(cost) )
+    return showToast(`Selling price must be greater than cost (${cost})`, "error");
 
-  // SUCCESS
-  showToast("Produce recorded successfully", "success");
-  form.reset();
+  // Prepare data object matching backend schema
+  const formData = {
+    produceName: name,
+    produceType: type,
+    date: date,
+    time: time,
+    tonnage: Number(tonnage),
+    cost: Number(cost),
+    dealer: dealer,
+    branch: branch,
+    contact: contact,
+    sellingPrice: Number(price) // Assuming backend accepts this or you add it to schema
+  };
+
+  try {
+    const token = localStorage.getItem('token'); // Get token from login
+    const response = await fetch('/api/procurement/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showToast("Produce recorded successfully", "success");
+      form.reset();
+    } else {
+      showToast(result.message || "Failed to record produce", "error");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Server error occurred", "error");
+  }
 });
 
+// Function to fetch and display procurements
+async function fetchProcurements() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/procurement', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const tbody = document.querySelector(".stock-table tbody");
+      tbody.innerHTML = ""; // Clear existing rows
+
+      data.forEach(item => {
+        const row = `<tr>
+          <td>${item.produceName}</td>
+          <td>${item.produceType}</td>
+          <td>${item.date || '-'}</td>
+          <td>${item.tonnage}</td>
+          <td>${item.cost.toLocaleString()}</td>
+          <td>${item.dealer || '-'}</td>
+          <td>${item.branch || '-'}</td>
+          <td>${item.contact || '-'}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching procurements:", error);
+  }
+}

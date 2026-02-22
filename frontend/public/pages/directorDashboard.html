@@ -28,25 +28,25 @@
       </div>
 
       <nav>
-        <a href="#"
+        <a href="#" onclick="showDashboard(event)" class="active"
           ><i class="fa-solid fa-chart-pie"></i><span> Dashboard</span></a
         >
-        <a href="salesOverviewDirector.html"
+        <a href="#" onclick="loadPage(event, 'salesOverviewDirector.html')"
           ><i class="fa-solid fa-coins"></i><span> Sales Overview</span></a
         >
-        <a href="stockOverviewDirector.html"
+        <a href="#" onclick="loadPage(event, 'stockOverviewDirector.html')"
           ><i class="fa-solid fa-warehouse"></i><span> Stock Overview</span></a
         >
-        <a href="creditSalesOverviewDirector.html"
+        <a href="#" onclick="loadPage(event, 'creditSalesOverviewDirector.html')"
           ><i class="fa-solid fa-credit-card"></i
           ><span> Credit Overview</span></a
         >
-        <a href="adminstration.html">
+        <a href="#" onclick="loadPage(event, 'adminstration.html')">
           <i class="fa-solid fa-user-gear"></i>
           <span> Administration</span>
         </a>
 
-        <a href="#"
+        <a href="#" onclick="logout()"
           ><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a
         >
       </nav>
@@ -54,10 +54,11 @@
 
     <!-- Main -->
     <main class="main">
+      <div id="dashboard-content">
       <!-- Top Bar -->
       <header class="topbar">
         <h3>Welcome, Director</h3>
-        <span><i class="fa-solid fa-user-tie"></i> Mr. Orban</span>
+        <span id="loggedInUser"><i class="fa-solid fa-user-tie"></i> Director</span>
       </header>
 
       <!-- Summary Cards -->
@@ -99,7 +100,38 @@
           <canvas id="stockDistributionChart"></canvas>
         </div>
       </section>
+      </div>
+
+      <!-- Iframe for other pages -->
+      <iframe id="content-frame" style="display: none; width: 100%; height: 100vh; border: none;"></iframe>
     </main>
     <script src="../js/directorDashboard.js"></script>
+    <script>
+      function showDashboard(e) {
+        if(e) e.preventDefault();
+        document.getElementById('dashboard-content').style.display = 'block';
+        document.getElementById('content-frame').style.display = 'none';
+        updateActiveLink(e.currentTarget);
+      }
+
+      function loadPage(e, url) {
+        if(e) e.preventDefault();
+        document.getElementById('dashboard-content').style.display = 'none';
+        const frame = document.getElementById('content-frame');
+        frame.style.display = 'block';
+        frame.src = url;
+        updateActiveLink(e.currentTarget);
+      }
+
+      function updateActiveLink(element) {
+        document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
+        element.classList.add('active');
+      }
+
+      function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      }
+    </script>
   </body>
 </html>

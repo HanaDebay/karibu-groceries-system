@@ -62,6 +62,8 @@ body::before {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 15px;
+  justify-content: center;
+  
 }
 
 .form-group {

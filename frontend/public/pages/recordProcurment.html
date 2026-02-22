@@ -15,11 +15,25 @@
     <link rel="stylesheet" href="../css/responsive-utilities.css" />
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/recordProcurement.css" />
+    <link rel="stylesheet" href="../css/recordSaleManager.css" />
+    <link rel="stylesheet" href="../css/stockOverviewDirector.css" />
+    <style>
+      /* Override styles to make the form full width */
+      body {
+        align-items: stretch;
+      }
+      main {
+        width: 100%;
+        padding: 20px;
+      }
+      .topbar, .sale-type-toggle, .form-container {
+        max-width: 100%;
+      }
+    </style>
   </head>
   <body>
     <!-- Main Content -->
-    <main class="main" id="main">
+    <main>
       <!-- Top Bar -->
       <header class="topbar">
         <h3>Procure Produce</h3>
@@ -27,16 +41,16 @@
       </header>
 
       <!-- Tabs -->
-      <section class="cards" style="gap: 10px">
+      <section class="sale-type-toggle">
         <button
-          class="tab-btn active"
+          class="active"
           id="addProduce-btn"
           onclick="showTab('addProduce')"
         >
           <i class="fa-solid fa-plus"></i> Add Produce
         </button>
         <button
-          class="tab-btn"
+          class=""
           id="viewProduce-btn"
           onclick="showTab('viewProduce')"
         >
@@ -45,92 +59,87 @@
       </section>
 
       <!-- Tab Content -->
-      <section>
+      <section class="form-container">
         <!-- Add Produce Form -->
          
-        <div id="addProduce" class="tab-content">
+        <div id="addProduce" class="tab-content" style="display: block;">
 
-          <div class="chart-box">
-            <h4>Record New Produce</h4>
-            <form id="procureForm">
-              <label>Produce Name</label>
+            <form id="procureForm" class="sale-form">
+              <h4>Record New Produce</h4>
+              
+              <div class="form-group">
+              <label for="name">Produce Name</label>
               <input type="text" name="name" id="name"  placeholder="e.g Beans" />
+              </div>
 
-              <label>Type</label>
-              <input
-                type="text"
-                name="type" id="type"
-                placeholder="e.g Grade A"
-              />
+              <div class="form-group">
+              <label for="type">Type</label>
+              <input type="text" name="type" id="type" placeholder="e.g Grade A" />
+              </div>
 
-              <label>Date</label>
+              <div class="form-group">
+              <label for="date">Date</label>
               <input type="date" id="date" name="date" />
+              </div>
 
-              <label>Time</label>
+              <div class="form-group">
+              <label for="time">Time</label>
               <input type="time" id="time" name="time"  />
+              </div>
 
-              <label>Tonnage (KG)</label>
-              <input
-                type="number"
-                name="tonnage" id="tonnage"
-                placeholder="e.g 1500"
-              />
+              <div class="form-group">
+              <label for="tonnage">Tonnage (KG)</label>
+              <input type="number" name="tonnage" id="tonnage" placeholder="e.g 1500" />
+              </div>
 
-              <label>Cost (UGX)</label>
-              <input
-                type="number"
-                name="cost" id="cost"
-                placeholder="e.g 4500000"
-              />
+              <div class="form-group">
+              <label for="cost">Cost (UGX)</label>
+              <input type="number" name="cost" id="cost" placeholder="e.g 4500000" />
+              </div>
 
-              <label>Dealer Name</label>
-              <input
-                type="text"
-                name="dealer" id="dealer"
-                placeholder="e.g John Doe"
-              />
+              <div class="form-group">
+              <label for="dealer">Dealer Name</label>
+              <input type="text" name="dealer" id="dealer" placeholder="e.g John Doe" />
+              </div>
 
-              <label>Branch</label>
+              <div class="form-group">
+              <label for="branch">Branch</label>
               <select name="branch" id="branch">
                 <option value="Maganjo">Maganjo</option>
                 <option value="Matugga">Matugga</option>
               </select>
+              </div>
 
-              <label>Contact</label>
-              <input
-                type="tel"
-                name="contact" id="contact"
-                placeholder="e.g 0771234567"
-              />
+              <div class="form-group">
+              <label for="contact">Contact</label>
+              <input type="tel" name="contact" id="contact" placeholder="e.g 0771234567" />
+              </div>
 
-              <label>Selling Price (UGX)</label>
-              <input
-                type="number"
-                name="price" id="price"
-                placeholder="e.g 5000"
-              />
+              <div class="form-group">
+              <label for="price">Selling Price (UGX)</label>
+              <input type="number" name="sellingPrice" id="price" placeholder="e.g 5000" />
+              </div>
 
-              <button type="submit" class="tab-btn" id="submit-btn" style="margin-top: 10px">
+              <button type="submit" class="submit-btn" id="submit-btn">
                 Add Produce
               </button>
             </form>
-          </div>
         </div>
 
         <!-- View Procurements Table -->
-        <div id="viewProduce" class="tab-content" style="display: none">
-          <div class="chart-box">
-            <h4>Procurement Records</h4>
-            <table
-              style="width: 100%; border-collapse: collapse; text-align: left"
-            >
-              <thead style="background: var(--primary); color: var(--light)">
+        <div id="viewProduce" class="tab-content" style="display: none;">
+          <section class="table-container">
+            <div class="search-row">
+              <input id="procureSearch" type="search" placeholder="Search produce, dealer..." />
+            </div>
+            <table class="stock-table">
+              <thead>
                 <tr>
                   <th>Name</th>
                   <th>Type</th>
                   <th>Date</th>
-                  <th>Tonnage</th>
-                  <th>Cost</th>
+                  <th>Tonnage (KG)</th>
+                  <th>Cost (UGX)</th>
                   <th>Dealer</th>
                   <th>Branch</th>
                   <th>Contact</th>
@@ -160,7 +169,7 @@
                 <!-- More rows will come from backend -->
               </tbody>
             </table>
-          </div>
+          </section>
         </div>
       </section>
     </main>

@@ -28,3 +28,12 @@ new Chart(document.getElementById("stockDistributionChart"), {
         }]
     }
 });
+
+// Display Logged In User Name
+document.addEventListener('DOMContentLoaded', () => {
+    const userName = localStorage.getItem('userName');
+    const userDisplay = document.getElementById('loggedInUser');
+    if (userName && userDisplay) {
+        userDisplay.innerHTML = `<i class="fa-solid fa-user-tie"></i> ${userName}`;
+    }
+});

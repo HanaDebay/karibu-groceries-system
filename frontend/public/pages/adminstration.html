@@ -1,90 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KGL | Administration</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KGL | Administration</title>
 
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
 
-  <link rel="stylesheet" href="../css/administration.css" />
-</head>
+    <link rel="stylesheet" href="../css/administration.css" />
+    <style>
+      /* Modal Styles */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal.open {
+        display: flex;
+      }
+      .modal-content {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        width: 500px;
+        max-width: 90%;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+      .modal-content header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      .modal-content h3 {
+        margin: 0;
+        color: #2c3e50;
+      }
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #777;
+      }
 
-<body>
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #34495e;
+      }
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
 
-<main class="main">
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .btn.primary {
+        background-color: #2c3e50;
+        color: white;
+      }
+      .btn.secondary {
+        background-color: #95a5a6;
+        color: white;
+      }
+      .btn.delete {
+        background-color: #e74c3c;
+        color: white;
+      }
 
-  <!-- Topbar -->
-  <header class="topbar">
-    <h3>Administration Panel</h3>
-    <span><i class="fa-solid fa-user-gear"></i> Director Access</span>
-  </header>
+      /* Toast */
+      .toast {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1100;
+        right: 20px;
+        top: 20px;
+      }
+      .toast.show {
+        visibility: visible;
+        animation:
+          fadein 0.5s,
+          fadeout 0.5s 2.5s;
+      }
+      .toast.success {
+        background-color: #2ecc71;
+      }
+      .toast.error {
+        background-color: #e74c3c;
+      }
+      @keyframes fadein {
+        from {
+          top: 0;
+          opacity: 0;
+        }
+        to {
+          top: 20px;
+          opacity: 1;
+        }
+      }
+      @keyframes fadeout {
+        from {
+          top: 20px;
+          opacity: 1;
+        }
+        to {
+          top: 0;
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
 
-  <!-- Tabs -->
-  <div class="toggle-container">
-  <button id="usersBtn" class="toggle-btn active" onclick="switchAdminView('users')">
-    <i class="fa-solid fa-users"></i> User Management
-  </button>
+  <body>
+    <main class="main">
+      <!-- Topbar -->
+      <header class="topbar">
+        <h3>Administration Panel</h3>
+        <span><i class="fa-solid fa-user-gear"></i> Director Access</span>
+      </header>
 
-  <button id="branchesBtn" class="toggle-btn" onclick="switchAdminView('branches')">
-    <i class="fa-solid fa-building"></i> Branch Management
-  </button>
-</div>
+      <!-- Tabs -->
+      <div class="toggle-container">
+        <button
+          id="usersBtn"
+          class="toggle-btn active"
+          onclick="switchAdminView('users')"
+        >
+          <i class="fa-solid fa-users"></i> User Management
+        </button>
 
+        <button
+          id="branchesBtn"
+          class="toggle-btn"
+          onclick="switchAdminView('branches')"
+        >
+          <i class="fa-solid fa-building"></i> Branch Management
+        </button>
+      </div>
 
-  <!-- USERS SECTION -->
-  <section id="usersSection" class="tab-content active">
+      <!-- USERS SECTION -->
+      <section id="usersSection" class="tab-content active">
+        <div class="action-bar">
+          <button class="btn primary" onclick="openModal('userModal')">
+            <i class="fa-solid fa-user-plus"></i> Add User
+          </button>
+          <input type="search" id="userSearch" placeholder="Search user..." />
+        </div>
 
-    <div class="action-bar">
-      <button class="btn primary" onclick="addUser()">
-        <i class="fa-solid fa-user-plus"></i> Add User
-      </button>
-      <input type="search" id="userSearch" placeholder="Search user..." />
+        <table class="admin-table" id="userTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Branch</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- BRANCH SECTION -->
+      <section id="branchesSection" style="display: none">
+        <div class="action-bar">
+          <button class="btn primary" onclick="openModal('branchModal')">
+            <i class="fa-solid fa-plus"></i> Add Branch
+          </button>
+          <input
+            type="search"
+            id="branchSearch"
+            placeholder="Search branch..."
+          />
+        </div>
+
+        <table class="admin-table" id="branchTable">
+          <thead>
+            <tr>
+              <th>Branch Name</th>
+              <th>Location</th>
+              <th>Manager</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- Add User Modal -->
+    <div id="userModal" class="modal">
+      <div class="modal-content">
+        <header>
+          <h3>Register New User</h3>
+          <button class="modal-close" onclick="closeModal('userModal')">
+            &times;
+          </button>
+        </header>
+        <form id="addUserForm">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              id="userName"
+              required
+              placeholder="e.g. John Doe"
+            />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              id="userEmail"
+              required
+              placeholder="e.g. john@kgl.com"
+            />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="userRole" required>
+              <option value="Manager">Manager</option>
+              <option value="Sales Agent">Sales Agent</option>
+              <option value="Director">Director</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Branch</label>
+            <select id="userBranch">
+              <option value="">Select Branch</option>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              id="userPassword"
+              required
+              placeholder="******"
+            />
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn secondary"
+              onclick="closeModal('userModal')"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn primary">Register User</button>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <table class="admin-table" id="userTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Branch</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-  </section>
-
-  <!-- BRANCH SECTION -->
-  <section id="branchesSection" style="display: none;">
-
-    <div class="action-bar">
-      <button class="btn primary" onclick="addBranch()">
-        <i class="fa-solid fa-plus"></i> Add Branch
-      </button>
-      <input type="search" id="branchSearch" placeholder="Search branch..." />
+    <!-- Add Branch Modal -->
+    <div id="branchModal" class="modal">
+      <div class="modal-content">
+        <header>
+          <h3>Add New Branch</h3>
+          <button class="modal-close" onclick="closeModal('branchModal')">
+            &times;
+          </button>
+        </header>
+        <form id="addBranchForm">
+          <div class="form-group">
+            <label>Branch Name</label>
+            <input
+              type="text"
+              id="branchName"
+              required
+              placeholder="e.g. Matugga"
+            />
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input
+              type="text"
+              id="branchLocation"
+              required
+              placeholder="e.g. Matugga Town"
+            />
+          </div>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn secondary"
+              onclick="closeModal('branchModal')"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn primary">Add Branch</button>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <table class="admin-table" id="branchTable">
-      <thead>
-        <tr>
-          <th>Branch Name</th>
-          <th>Location</th>
-          <th>Manager</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-  </section>
-
-</main>
-
-<script src="../js/administration.js"></script>
-</body>
+    <div id="toast" class="toast"></div>
+    <script src="../js/administration.js"></script>
+  </body>
 </html>

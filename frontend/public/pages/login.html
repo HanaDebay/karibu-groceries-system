@@ -14,6 +14,34 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="../css/login.css" />
+  <style>
+    /* Toast Notification Styles */
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      right: 20px;
+      top: 20px;
+      font-size: 16px;
+    }
+
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    .toast.error { background-color: #e74c3c; }
+    .toast.success { background-color: #2ecc71; }
+
+    @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
+    @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
+  </style>
 </head>
 
 <body>
@@ -25,17 +53,17 @@
       <p>Login to access the system</p>
 
       <form id="loginForm">
-        <!-- Username -->
+        <!-- Email -->
         <div class="form-group">
-          <label> <i class="fa-solid fa-user"></i> Username </label>
-          <input type="text" id="username" required />
+          <label> <i class="fa-solid fa-envelope"></i> Email </label>
+          <input type="email" id="email" required placeholder="Enter your email" autocomplete="off"/>
         </div>
 
         <!-- Password -->
         <div class="form-group">
           <label> <i class="fa-solid fa-lock"></i> Password </label>
-          <input type="password" id="password" required />
-        </div>
+          <input type="password" id="password" required autocomplete="off" placeholder="Enter your password"/>
+        </div> 
 
         <div class="form-extra">
           <label>
@@ -56,6 +84,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Toast Container -->
+  <div id="toast" class="toast"></div>
 
   <!-- JS -->
   <script src="../js/responsive-utils.js"></script>

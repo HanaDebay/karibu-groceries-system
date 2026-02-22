@@ -1,29 +1,4 @@
-const stockData = [
-  {
-    id: 1,
-    name: "Beans",
-    type: "Red",
-    branch: "Matugga",
-    tonnage: 4500,
-    price: 3500
-  },
-  {
-    id: 2,
-    name: "Maize",
-    type: "Grain",
-    branch: "Matugga",
-    tonnage: 800,
-    price: 1200
-  },
-  {
-    id: 3,
-    name: "Soybeans",
-    type: "Yellow",
-    branch: "Matugga",
-    tonnage: 10,
-    price: 4000
-  }
-];
+let stockData = []; // Initialize empty array
 
 const tableBody = document.querySelector("#stockTable tbody");
 const stockSearch = document.getElementById('stockSearch');
@@ -176,8 +151,34 @@ deleteConfirm.addEventListener('click', function () {
   closeDeleteModal();
 });
 
-// Initial render
-renderStock();
+// Fetch Stock Data from Backend
+async function fetchStock() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/procurement', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Map backend data to frontend structure
+      stockData = data.map(item => ({
+        id: item._id,
+        name: item.produceName,
+        type: item.produceType,
+        branch: item.branch,
+        tonnage: item.tonnage,
+        price: item.sellingPrice || 0 // Ensure price exists
+      }));
+      renderStock();
+    }
+  } catch (error) {
+    console.error("Error loading stock:", error);
+  }
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', fetchStock);
 
 // wire search
 if (stockSearch) {

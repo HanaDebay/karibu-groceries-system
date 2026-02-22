@@ -42,3 +42,21 @@ new Chart(produceCtx, {
     }]
   }
 });
+
+// Display Logged In User Name and Branch
+document.addEventListener('DOMContentLoaded', () => {
+    const userName = localStorage.getItem('userName');
+    const branch = localStorage.getItem('branch');
+    
+    const welcomeMsg = document.getElementById('welcome-msg');
+    const branchInfo = document.getElementById('branch-info');
+
+    if (userName && welcomeMsg) {
+        welcomeMsg.textContent = `Welcome, ${userName}`;
+    } else {
+        console.log("User name not found in localStorage");
+    }
+    if (branch && branchInfo) {
+        branchInfo.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${branch} Branch`;
+    }
+});
