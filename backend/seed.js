@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 // Configuration
-const DIRECTOR_EMAIL = "director@kgl.com";
+const DIRECTOR_EMAIL = "orban@kgl.co.ug";
 
 const seedDirector = async () => {
     try {

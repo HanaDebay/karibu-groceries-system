@@ -2,6 +2,9 @@ let users = [];
 let branches = [];
 
 const token = localStorage.getItem('token');
+let selectedUserId = null;
+let userFilterText = "";
+let branchFilterText = "";
 
 // Toast Helper
 function showToast(message, type = 'success') {
@@ -48,7 +51,17 @@ function renderUsers() {
 
   if (!Array.isArray(users)) return; // Safety check
 
-  users.forEach((user, index) => {
+  const filteredUsers = users.filter(user => {
+    const text = [
+      user.fullName,
+      user.role,
+      user.branch,
+      user.email
+    ].map(value => String(value || "").toLowerCase()).join(" ");
+    return text.includes(userFilterText);
+  });
+
+  filteredUsers.forEach((user, index) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -57,6 +70,9 @@ function renderUsers() {
       <td>${user.branch || '-'}</td>
       <td><span class="badge active">Active</span></td>
       <td>
+        <button class="btn secondary" onclick="openUpdateUserModal('${user._id}', '${user.email || ""}')">
+          <i class="fa-solid fa-key"></i>
+        </button>
         <button class="btn delete" onclick="deleteUser('${user._id}')"><i class="fa-solid fa-trash"></i></button>
       </td>
     `;
@@ -71,7 +87,13 @@ function renderBranches() {
 
   if (!Array.isArray(branches)) return; // Safety check
 
-  branches.forEach((branch, index) => {
+  const filteredBranches = branches.filter(branch => {
+    const text = [branch.name, branch.location, branch.manager]
+      .map(value => String(value || "").toLowerCase()).join(" ");
+    return text.includes(branchFilterText);
+  });
+
+  filteredBranches.forEach((branch, index) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -111,6 +133,15 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
 }
 
+function openUpdateUserModal(id, email) {
+  selectedUserId = id;
+  const emailInput = document.getElementById("updateUserEmail");
+  const passwordInput = document.getElementById("updateUserPassword");
+  if (emailInput) emailInput.value = email || "";
+  if (passwordInput) passwordInput.value = "";
+  openModal("updateUserModal");
+}
+
 // --- Form Submissions ---
 
 // Add User
@@ -140,6 +171,48 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
       fetchData(); // Refresh list
     } else {
       showToast(data.message || "Registration failed", "error");
+    }
+  } catch (err) {
+    showToast("Server error", "error");
+  }
+});
+
+// Update User (Email/Password)
+document.getElementById('updateUserForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  if (!selectedUserId) {
+    showToast("No user selected", "error");
+    return;
+  }
+
+  const email = document.getElementById('updateUserEmail').value.trim();
+  const password = document.getElementById('updateUserPassword').value.trim();
+
+  if (!email && !password) {
+    showToast("Provide email or password to update", "error");
+    return;
+  }
+
+  const payload = {};
+  if (email) payload.email = email;
+  if (password) payload.password = password;
+
+  try {
+    const res = await fetch(`/api/users/${selectedUserId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showToast("User updated successfully");
+      closeModal('updateUserModal');
+      e.target.reset();
+      fetchData();
+    } else {
+      showToast(data.message || "Update failed", "error");
     }
   } catch (err) {
     showToast("Server error", "error");
@@ -193,6 +266,22 @@ async function deleteBranch(id) {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', fetchData);
+
+const userSearchInput = document.getElementById("userSearch");
+if (userSearchInput) {
+  userSearchInput.addEventListener("input", (e) => {
+    userFilterText = e.target.value.trim().toLowerCase();
+    renderUsers();
+  });
+}
+
+const branchSearchInput = document.getElementById("branchSearch");
+if (branchSearchInput) {
+  branchSearchInput.addEventListener("input", (e) => {
+    branchFilterText = e.target.value.trim().toLowerCase();
+    renderBranches();
+  });
+}
 
 function switchAdminView(view) {
   const usersSection = document.getElementById("usersSection");

@@ -143,4 +143,49 @@ router.delete('/credit/:id', verifyToken, checkRole(['Manager', 'Sales Agent']),
  */
 router.get('/stats', verifyToken, checkRole(['Director']), salesController.getSalesStats);
 
+// GET: Director Summary (Cash + Credit)
+/**
+ * @swagger
+ * /api/sales/director-summary:
+ *   get:
+ *     summary: Get director dashboard summary (cash + credit)
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Director summary
+ */
+router.get('/director-summary', verifyToken, checkRole(['Director']), salesController.getDirectorSummary);
+
+// GET: Director Sales Overview (All branches, cash + credit)
+/**
+ * @swagger
+ * /api/sales/director-overview:
+ *   get:
+ *     summary: Get director sales overview (cash + credit)
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Director sales overview
+ */
+router.get('/director-overview', verifyToken, checkRole(['Director']), salesController.getDirectorSalesOverview);
+
+// GET: Director Credit Overview (All branches)
+/**
+ * @swagger
+ * /api/sales/credit-overview:
+ *   get:
+ *     summary: Get director credit overview
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Director credit overview
+ */
+router.get('/credit-overview', verifyToken, checkRole(['Director']), salesController.getDirectorCreditOverview);
+
 module.exports = router;

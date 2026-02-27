@@ -46,8 +46,10 @@ body {
 /* Search */
 .search-row {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 12px;
+  gap: 10px;
 }
 
 .search-row input {
@@ -55,6 +57,19 @@ body {
   border-radius: 6px;
   border: 1px solid #ddd;
   width: 300px;
+}
+
+.btn-print {
+  background: var(--primary);
+  color: var(--light);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-print i {
+  margin-right: 6px;
 }
 
 /* Table */

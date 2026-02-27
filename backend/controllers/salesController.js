@@ -54,6 +54,126 @@ exports.getSalesStats = async (req, res) => {
     }
 };
 
+// NEW LOGIC: Director Summary (Cash + Credit)
+exports.getDirectorSummary = async (req, res) => {
+    try {
+        const cashStats = await Sale.aggregate([
+            {
+                $group: {
+                    _id: "$branch",
+                    cashRevenue: { $sum: "$amountPaid" }
+                }
+            }
+        ]);
+
+        const creditStats = await CreditSale.aggregate([
+            {
+                $group: {
+                    _id: "$branch",
+                    creditRevenue: { $sum: "$amountDue" }
+                }
+            }
+        ]);
+
+        const branchMap = new Map();
+
+        cashStats.forEach(item => {
+            branchMap.set(item._id, {
+                branch: item._id,
+                cashRevenue: Number(item.cashRevenue || 0),
+                creditRevenue: 0
+            });
+        });
+
+        creditStats.forEach(item => {
+            const existing = branchMap.get(item._id) || {
+                branch: item._id,
+                cashRevenue: 0,
+                creditRevenue: 0
+            };
+            existing.creditRevenue = Number(item.creditRevenue || 0);
+            branchMap.set(item._id, existing);
+        });
+
+        const salesByBranch = Array.from(branchMap.values())
+            .map(item => ({
+                ...item,
+                totalRevenue: Number(item.cashRevenue || 0) + Number(item.creditRevenue || 0)
+            }))
+            .sort((a, b) => a.branch.localeCompare(b.branch));
+
+        const totalSales = salesByBranch.reduce((sum, item) => sum + Number(item.totalRevenue || 0), 0);
+        const creditOutstanding = salesByBranch.reduce((sum, item) => sum + Number(item.creditRevenue || 0), 0);
+
+        success(res, { salesByBranch, totalSales, creditOutstanding }, "Director summary fetched successfully");
+    } catch (err) {
+        error(res, err.message, 500);
+    }
+};
+
+// NEW LOGIC: Director Sales Overview (All branches, cash + credit)
+exports.getDirectorSalesOverview = async (req, res) => {
+    try {
+        const cashSales = await Sale.find({}).lean();
+        const creditSales = await CreditSale.find({}).lean();
+
+        const formattedCash = cashSales.map(s => ({
+            id: s._id,
+            produce: s.produceName,
+            type: s.produceType || "N/A",
+            branch: s.branch,
+            agent: s.recordedBy,
+            saleType: "Cash",
+            quantity: s.tonnage,
+            amount: s.amountPaid,
+            date: s.date,
+            status: "Paid"
+        }));
+
+        const formattedCredit = creditSales.map(s => ({
+            id: s._id,
+            produce: s.produceName,
+            type: s.produceType || "N/A",
+            branch: s.branch,
+            agent: s.recordedBy,
+            saleType: "Credit",
+            quantity: s.tonnage,
+            amount: s.amountDue,
+            date: s.dispatchDate,
+            status: Number(s.amountDue) > 0 ? "Pending" : "Paid"
+        }));
+
+        const allSales = [...formattedCash, ...formattedCredit]
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        success(res, allSales, "Director sales overview fetched successfully");
+    } catch (err) {
+        error(res, err.message, 500);
+    }
+};
+
+// NEW LOGIC: Director Credit Overview (All branches)
+exports.getDirectorCreditOverview = async (req, res) => {
+    try {
+        const creditSales = await CreditSale.find({}).lean();
+
+        const formatted = creditSales.map(s => ({
+            id: s._id,
+            buyer: s.buyerName,
+            branch: s.branch,
+            agent: s.recordedBy,
+            produce: s.produceName,
+            amountDue: s.amountDue,
+            dueDate: s.dueDate
+        }));
+
+        const sorted = formatted.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        success(res, sorted, "Director credit overview fetched successfully");
+    } catch (err) {
+        error(res, err.message, 500);
+    }
+};
+
 // Get All Sales (Cash & Credit) for Manager/Agent
 exports.getSales = async (req, res) => {
     try {

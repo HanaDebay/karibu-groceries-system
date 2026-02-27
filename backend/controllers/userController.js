@@ -10,6 +10,7 @@ exports.getAllUsers = async (req, res) => {
         const formattedUsers = users.map(user => ({
             _id: user._id,
             fullName: user.fullName, 
+            email: user.email,
             role: user.role,
             branch: user.branch,
             status: user.status || "Active"
