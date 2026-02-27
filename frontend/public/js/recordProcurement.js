@@ -1,200 +1,233 @@
-// Tabs functionality
-const addBtn = document.getElementById("addProduce-btn");
-const viewBtn = document.getElementById("viewProduce-btn");
-const addTab = document.getElementById("addProduce");
-const viewTab = document.getElementById("viewProduce");
-
-addBtn.addEventListener("click", () => {
-  addTab.style.display = "block";
-  viewTab.style.display = "none";
-  addBtn.classList.add("active");
-  viewBtn.classList.remove("active");
-});
-
-viewBtn.addEventListener("click", () => {
-  viewTab.style.display = "block";
-  addTab.style.display = "none";
-  viewBtn.classList.add("active");
-  addBtn.classList.remove("active");
-  fetchProcurements(); // Fetch data when tab is opened
-});
-
-function showTab(tabName) {
-  const tabs = document.querySelectorAll(".tab-content");
-  tabs.forEach((tab) => (tab.style.display = "none"));
-
-  document.getElementById(tabName).style.display = "block";
-
-  const buttons = document.querySelectorAll(".tab-btn");
-  buttons.forEach((btn) => btn.classList.remove("active"));
-  document.getElementById(tabName + "-btn").classList.add("active");
-}
-window.onload = () => showTab("addProduce"); // Default tab
-
-
-
-
-const form = document.getElementById("procureForm");
-const toast = document.getElementById("toast");
-
-/* Show Toast */
-function showToast(message, type) {
-  toast.textContent = message;
-  toast.className = `toast show ${type}`;
-
-  setTimeout(() => {
-    toast.className = "toast";
-  }, 3000);
-}
-
-/* Validation Helpers */
-function isAlpha(text) {
-  return /^[A-Za-z ]+$/.test(text);
-}
-
-function isAlphaNumeric(text) {
-  return /^[A-Za-z0-9 ]+$/.test(text);
-}
-
-function isValidPhone(phone) {
-  return /^07\d{8}$/.test(phone);
-}
-
-/* Tabs */
-function showTab(tabName) {
-  document.querySelectorAll(".tab-content").forEach(tab => {
-    tab.style.display = "none";
-  });
-
-  document.getElementById(tabName).style.display = "block";
-
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
-  document.getElementById(tabName + "-btn").classList.add("active");
-}
-
-
-/* Form Validation */
-form.addEventListener("submit", async function (e) {
-  e.preventDefault();
-  
-
-  const name = document.getElementById("name").value.trim();
-  const type = document.getElementById("type").value.trim();
-  const date = document.getElementById("date").value; 
-  const time = document.getElementById("time").value;
-  const tonnage = document.getElementById("tonnage").value;
-  const cost = document.getElementById("cost").value;
-  const dealer = document.getElementById("dealer").value.trim();
-  const branch = document.getElementById("branch").value;
-  const contact = document.getElementById("contact").value.trim();
-  const sellingPrice = document.getElementById("price").value;
-
-
-  // Validation checks
-  if(!name || !type || !date || !time || !tonnage || !cost || !dealer || !branch || !contact || !sellingPrice) {
-    return showToast("All fields are required", "error");
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html"; // Redirect to login if not authenticated
   }
 
-  if (name.length < 2)
-    return showToast("Produce name must be at least 2 characters", "error");
+  // ===== Toast Notification =====
+  function showToast(msg, type = "success") {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove("show"), 3000);
+  }
 
-  if (type.length < 2)
-    return showToast("Produce Type must be at least 2 characters", "error");
+  // ===== Tab Switching Logic =====
+  const addProduceBtn = document.getElementById("addProduce-btn");
+  const viewProduceBtn = document.getElementById("viewProduce-btn");
+  const addProduceTab = document.getElementById("addProduce");
+  const viewProduceTab = document.getElementById("viewProduce");
 
-  if (!date)
-    return showToast("Date is required", "error");
-
-  if (!time)
-    return showToast("Time is required", "error");
-
-  if (isNaN(tonnage) || tonnage < 1000)
-    return showToast("Tonnage must be at least 1000 KG", "error");
-
-  if (isNaN(cost) || cost < 10000)
-    return showToast("Cost must be at least UGX 10,000", "error");
-
-  if (!isAlphaNumeric(dealer) || dealer.length < 2)
-    return showToast("Invalid dealer name", "error");
-
-  if (!branch)
-    return showToast("Select a branch", "error");
-
-  if (!isValidPhone(contact))
-    return showToast("Invalid phone number (07XXXXXXXX)", "error");
-
-  if (isNaN(sellingPrice) || Number(sellingPrice) <= Number(cost) )
-    return showToast(`Selling price must be greater than cost (${cost})`, "error");
-
-  // Prepare data object matching backend schema
-  const formData = {
-    produceName: name,
-    produceType: type,
-    date: date,
-    time: time,
-    tonnage: Number(tonnage),
-    cost: Number(cost),
-    dealer: dealer,
-    branch: branch,
-    contact: contact,
-    sellingPrice: Number(price) // Assuming backend accepts this or you add it to schema
+  window.showTab = function (tabName) {
+    if (tabName === "addProduce") {
+      addProduceTab.style.display = "block";
+      viewProduceTab.style.display = "none";
+      addProduceBtn.classList.add("active");
+      viewProduceBtn.classList.remove("active");
+    } else {
+      addProduceTab.style.display = "none";
+      viewProduceTab.style.display = "block";
+      addProduceBtn.classList.remove("active");
+      viewProduceBtn.classList.add("active");
+      // Fetch procurements, respecting any existing search term
+      fetchAndDisplayProcurements(document.getElementById('procureSearch').value.trim());
+    }
   };
 
+  // ===== Populate Branch From Logged-In User Data =====
+  const branchInput = document.getElementById("branch");
+  const topbarBranch = document.querySelector(".topbar span");
+  const procureForm = document.getElementById("procureForm");
+
   try {
-    const token = localStorage.getItem('token'); // Get token from login
-    const response = await fetch('/api/procurement/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(formData)
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      showToast("Produce recorded successfully", "success");
-      form.reset();
+    const branch = localStorage.getItem("branch");
+    if (branch) {
+      branchInput.value = branch;
+      topbarBranch.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${branch} Branch`;
     } else {
-      showToast(result.message || "Failed to record produce", "error");
+      throw new Error("Branch information not found. Please log in again.");
     }
   } catch (error) {
-    console.error("Error:", error);
-    showToast("Server error occurred", "error");
+    showToast(error.message, "error");
+    procureForm.style.display = "none"; // Hide form if no user context
   }
-});
 
-// Function to fetch and display procurements
-async function fetchProcurements() {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch('/api/procurement', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      const tbody = document.querySelector(".stock-table tbody");
-      tbody.innerHTML = ""; // Clear existing rows
+  // ===== Validation Helpers =====
+  const alphaNumRegex = /^[a-zA-Z0-9 ]{2,}$/;
+  const alphaRegex = /^[a-zA-Z ]{2,}$/;
+  const ugPhoneRegex = /^(?:\+256|0)7\d{8}$/;
 
-      data.forEach(item => {
-        const row = `<tr>
-          <td>${item.produceName}</td>
-          <td>${item.produceType}</td>
-          <td>${item.date || '-'}</td>
-          <td>${item.tonnage}</td>
-          <td>${item.cost.toLocaleString()}</td>
-          <td>${item.dealer || '-'}</td>
-          <td>${item.branch || '-'}</td>
-          <td>${item.contact || '-'}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+  // ===== Form Submission Logic =====
+  procureForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(procureForm);
+    const formProps = Object.fromEntries(formData.entries());
+
+    // Map frontend form names to backend model names
+    const data = {
+      produceName: formProps.name,
+      produceType: formProps.type,
+      date: formProps.date,
+      tonnage: formProps.tonnage,
+      cost: formProps.cost,
+      dealerName: formProps.dealer,
+      contact: formProps.contact,
+      sellingPrice: formProps.sellingPrice,
+      branch: formProps.branch, // This is from the readonly input
+      time: formProps.time,
+    };
+
+    // --- Validation based on business rules ---
+    if (!data.produceName || !data.produceType || !data.date || !data.tonnage || !data.cost || !data.dealerName || !data.contact || !data.sellingPrice) {
+      return showToast("All fields are required.", "error");
+    }
+    if (!alphaNumRegex.test(data.produceName)) {
+      return showToast("Invalid produce name (alphanumeric, >= 2 chars).", "error");
+    }
+    if (!alphaRegex.test(data.produceType)) {
+      return showToast("Invalid produce type (alphabetic, >= 2 chars).", "error");
+    }
+    if (parseInt(data.tonnage, 10) < 1000) {
+      return showToast("Tonnage must be at least 1000 KG.", "error");
+    }
+    if (data.cost.length < 5 || isNaN(data.cost)) {
+      return showToast("Cost must be a number of at least 5 digits.", "error");
+    }
+    if (!alphaNumRegex.test(data.dealerName)) {
+      return showToast("Invalid dealer name (alphanumeric, >= 2 chars).", "error");
+    }
+    if (!ugPhoneRegex.test(data.contact)) {
+      return showToast("Please use a valid Ugandan phone number.", "error");
+    }
+    if (isNaN(data.sellingPrice) || parseInt(data.sellingPrice) <= 0) {
+      return showToast("Please enter a valid selling price.", "error");
+    }
+
+    // --- Backend Integration ---
+    try {
+      const response = await fetch('/api/procurement/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to record procurement. Check console for details.');
+      }
+
+      showToast("Produce procured successfully!");
+      procureForm.reset();
+      // Repopulate readonly branch field after form reset
+      branchInput.value = localStorage.getItem("branch");
+      fetchAndDisplayProcurements(); // Refresh the list
+
+    } catch (error) {
+      console.error("Procurement Error:", error);
+      showToast(error.message, "error");
     }
-  } catch (error) {
-    console.error("Error fetching procurements:", error);
+  });
+
+  // ===== Search, Fetch, and Print Logic =====
+  const procureSearch = document.getElementById('procureSearch');
+  const printBtn = document.getElementById('printBtn');
+  let searchTimeout;
+
+  procureSearch.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      fetchAndDisplayProcurements(procureSearch.value.trim());
+    }, 300); // Debounce to avoid excessive API calls
+  });
+
+  if (printBtn) {
+    printBtn.addEventListener('click', async () => {
+        const printTbody = document.querySelector("#printTbody");
+        printTbody.innerHTML = '<tr><td colspan="8">Generating report...</td></tr>';
+
+        const searchTerm = procureSearch.value.trim();
+        // Always fetch all relevant data for printing, no limit
+        const printUrl = searchTerm 
+            ? `/api/procurement?search=${encodeURIComponent(searchTerm)}` 
+            : '/api/procurement';
+
+        try {
+            const response = await fetch(printUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Could not fetch full report for printing.');
+            
+            const responseData = await response.json();
+            const procurements = responseData.data || [];
+
+            if (procurements.length === 0) {
+                printTbody.innerHTML = '<tr><td colspan="8">No data to print.</td></tr>';
+                showToast("No data found to generate a report.", "error");
+                return;
+            }
+
+            // Populate the hidden print-only tbody
+            printTbody.innerHTML = procurements.map(item => `
+                <tr>
+                  <td>${item.produceName}</td><td>${item.produceType}</td><td>${new Date(item.date).toLocaleDateString()}</td>
+                  <td>${item.tonnage.toLocaleString()}</td><td>${(item.cost || 0).toLocaleString()}</td>
+                  <td>${item.dealerName}</td><td>${item.branch}</td><td>${item.contact}</td>
+                </tr>`).join('');
+            
+            // Now trigger the print dialog
+            window.print();
+
+        } catch (error) {
+            showToast(error.message, "error");
+            console.error("Print Error:", error);
+            printTbody.innerHTML = `<tr><td colspan="8" class="error">${error.message}</td></tr>`;
+        }
+    });
   }
-}
+
+  async function fetchAndDisplayProcurements(searchTerm = "") {
+    const tableBody = document.querySelector("#displayTbody");
+    tableBody.innerHTML = '<tr><td colspan="8">Loading procurements...</td></tr>';
+
+    let url = '/api/procurement?';
+    if (searchTerm) {
+      url += `search=${encodeURIComponent(searchTerm)}`;
+    } else {
+      url += 'limit=10';
+    }
+
+    try {
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch procurements.');
+      }
+
+      const responseData = await response.json();
+      const procurements = responseData.data || []; // The backend wraps the array in a 'data' property
+
+      if (!procurements || procurements.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="8">No procurements found for this branch.</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = procurements.map(item => `
+        <tr>
+          <td>${item.produceName}</td><td>${item.produceType}</td><td>${new Date(item.date).toLocaleDateString()}</td>
+          <td>${item.tonnage.toLocaleString()}</td><td>${(item.cost || 0).toLocaleString()}</td>
+          <td>${item.dealerName}</td><td>${item.branch}</td><td>${item.contact}</td>
+        </tr>`).join('');
+    } catch (error) {
+      console.error("Fetch Procurements Error:", error);
+      tableBody.innerHTML = `<tr><td colspan="8" class="error">${error.message}</td></tr>`;
+    }
+  }
+
+  // Initially show the add produce tab
+  showTab('addProduce');
+});

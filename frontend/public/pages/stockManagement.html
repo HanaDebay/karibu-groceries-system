@@ -21,6 +21,66 @@
     .btn.edit { background-color: #3498db; }
     .btn.delete { background-color: #e74c3c; }
     .btn:hover { opacity: 0.9; }
+    .search-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+    .search-row input {
+        flex-grow: 1;
+        margin-right: 1rem;
+    }
+    #printBtn {
+        padding: 10px 15px;
+        white-space: nowrap;
+        background-color: #16a085;
+    }
+    .print-only { display: none; }
+    .print-header {
+        display: none;
+        text-align: center;
+        margin-bottom: 12px;
+    }
+    .print-header img {
+        max-width: 120px;
+        max-height: 60px;
+        object-fit: contain;
+        margin-bottom: 6px;
+    }
+    .print-header h2 {
+        margin: 0;
+        color: #2c3e50;
+    }
+    .print-header p {
+        margin: 2px 0;
+        color: #555;
+        font-size: 13px;
+    }
+
+    @media print {
+        body > *:not(main),
+        main > *:not(.table-container),
+        .topbar, .search-row, .modal, #toast, #stockTable > tbody:not(#printTbody),
+        .actions-header, .actions {
+            display: none !important;
+        }
+        .table-container, #printTbody {
+            display: block !important;
+        }
+        .print-header {
+            display: block !important;
+        }
+        #printTbody { display: table-row-group !important; }
+        .table-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+    }
 
     /* Modal Styles */
     .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
@@ -33,6 +93,26 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     .modal-actions .btn { padding: 8px 16px; }
     #deleteCancel, #editCancel { background-color: #95a5a6; }
+
+    /* Toast Notification */
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1100;
+      right: 20px;
+      top: 20px;
+    }
+    .toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+    .toast.error { background-color: #e74c3c; }
+    .toast.success { background-color: #2ecc71; }
+    @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
+    @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
   </style>
 </head>
 
@@ -48,8 +128,17 @@
 
     <!-- Stock Table -->
     <section class="table-container">
+      <div id="printHeader" class="print-header print-only">
+        <img src="/images/logo.png" alt="Karibu Groceries Logo" />
+        <h2>Karibu Groceries Ltd</h2>
+        <p>Stock Management Report</p>
+        <p id="printGeneratedDate"></p>
+      </div>
       <div class="search-row">
         <input id="stockSearch" type="search" placeholder="Search produce, type or branch..." />
+        <button id="printBtn" class="btn">
+            <i class="fa-solid fa-print"></i> Print Report
+        </button>
       </div>
       <table class="stock-table" id="stockTable">
         <thead>
@@ -57,21 +146,24 @@
             <th>Produce</th>
             <th>Type</th>
             <th>Branch</th>
-            <th>Tonnage (KG)</th>
+            <th>Available (KG)</th>
             <th>Price (UGX)</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th class="actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           <!-- Filled by JS -->
+        </tbody>
+        <tbody id="printTbody" class="print-only">
+          <!-- For printing -->
         </tbody>
       </table>
     </section>
 
   </main>
 
-  <!-- JS -->
+  <div id="toast" class="toast"></div>
 
   <!-- Edit Modal -->
   <div class="modal" id="editModal" aria-hidden="true">
@@ -83,26 +175,26 @@
       <form id="editForm">
         <div class="form-row">
           <label>Produce</label>
-          <input type="text" id="editName" required />
+          <input type="text" id="editProduceName" required />
         </div>
         <div class="form-row">
           <label>Type</label>
-          <input type="text" id="editType" />
+          <input type="text" id="editProduceType" />
         </div>
         <div class="form-row">
           <label>Branch</label>
-          <select id="editBranch">
+          <select id="editBranch" disabled>
             <option value="Matugga">Matugga</option>
-            <option value="Kampala">Kampala</option>
+            <option value="Maganjo">Maganjo</option>
           </select>
         </div>
         <div class="form-row">
-          <label>Tonnage (KG)</label>
-          <input type="number" id="editTonnage" min="0" />
+          <label>Original Tonnage (KG)</label>
+          <input type="number" id="editTonnage" min="1" required/>
         </div>
         <div class="form-row">
           <label>Price (UGX)</label>
-          <input type="number" id="editPrice" min="0" />
+          <input type="number" id="editSellingPrice" min="0" required/>
         </div>
         <footer class="modal-actions">
           <button type="button" class="btn" id="editCancel">Cancel</button>

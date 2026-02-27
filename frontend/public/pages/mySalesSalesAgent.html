@@ -25,6 +25,11 @@
 
       <!-- Sales Table -->
       <section class="table-container">
+        <div class="report-controls">
+          <button id="cashBtn" class="active">Cash Sales</button>
+          <button id="creditBtn">Credit Sales</button>
+        </div>
+
         <section class="search-row">
           <input
             id="salesSearch"
@@ -40,6 +45,8 @@
               <th>KG Sold</th>
               <th>Buyer</th>
               <th>Amount (UGX)</th>
+              <th>Due Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>

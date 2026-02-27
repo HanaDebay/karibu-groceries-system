@@ -26,8 +26,57 @@
         width: 100%;
         padding: 20px;
       }
+      .form-group input[readonly] {
+        background-color: #ecf0f1;
+        color: #7f8c8d;
+        cursor: not-allowed;
+      }
       .topbar, .sale-type-toggle, .form-container {
         max-width: 100%;
+      }
+      .search-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .search-row input {
+          flex-grow: 1;
+          margin-right: 1rem;
+      }
+      #printBtn {
+          padding: 10px 15px;
+          white-space: nowrap;
+      }
+      .print-only {
+          display: none;
+      }
+
+      @media print {
+          body > *:not(main),
+          main > *:not(.form-container),
+          .form-container > *:not(#viewProduce),
+          #viewProduce > *:not(.table-container),
+          .topbar, .sale-type-toggle, #addProduce, .search-row, #toast, #displayTbody {
+              display: none !important;
+          }
+
+          #viewProduce, .table-container, #printTbody {
+              display: block !important;
+          }
+          #printTbody {
+              display: table-row-group !important;
+          }
+
+          .table-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              margin: 0;
+              padding: 20px;
+              box-sizing: border-box;
+          }
       }
     </style>
   </head>
@@ -104,10 +153,7 @@
 
               <div class="form-group">
               <label for="branch">Branch</label>
-              <select name="branch" id="branch">
-                <option value="Maganjo">Maganjo</option>
-                <option value="Matugga">Matugga</option>
-              </select>
+              <input type="text" name="branch" id="branch" readonly />
               </div>
 
               <div class="form-group">
@@ -131,6 +177,9 @@
           <section class="table-container">
             <div class="search-row">
               <input id="procureSearch" type="search" placeholder="Search produce, dealer..." />
+              <button id="printBtn" class="submit-btn">
+                <i class="fa-solid fa-print"></i> Print Report
+              </button>
             </div>
             <table class="stock-table">
               <thead>
@@ -145,28 +194,11 @@
                   <th>Contact</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>Beans</td>
-                  <td>Grade A</td>
-                  <td>2026-02-05</td>
-                  <td>1500</td>
-                  <td>4,500,000</td>
-                  <td>John Doe</td>
-                  <td>Matugga</td>
-                  <td>0771234567</td>
-                </tr>
-                <tr>
-                  <td>Maize</td>
-                  <td>Grade B</td>
-                  <td>2026-02-04</td>
-                  <td>2000</td>
-                  <td>3,800,000</td>
-                  <td>Jane Smith</td>
-                  <td>Maganjo</td>
-                  <td>0779876543</td>
-                </tr>
-                <!-- More rows will come from backend -->
+              <tbody id="displayTbody">
+                <!-- Populated by JS -->
+              </tbody>
+              <tbody id="printTbody" class="print-only">
+                <!-- Populated by JS for printing -->
               </tbody>
             </table>
           </section>
@@ -177,7 +209,6 @@
     <div id="toast" class="toast"></div>
     <!-- JS -->
     <script src="../js/responsive-utils.js"></script>
-    <script src="../js/recordProcurement.js"></script>
-  
+    <script src="../js/recordProcurement.js"></script>  
   </body>
 </html>

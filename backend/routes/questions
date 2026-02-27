@@ -4,3 +4,6 @@ differ primarily in how long they keep data
 and their accessibility accros tabs 
 so based on this which method is perfect or good for our kgl project 
 am expriencing because i used localStorage differnt users in same browser different tab are able to login and they are using the same token ?
+ bcrypt bcryptjs body-parser connect-mongo cors dotenv express express-session jsonwebtoken method-override mongoose pug swagger-jsdoc swagger-ui-express
+
+ 

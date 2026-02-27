@@ -11,6 +11,21 @@ const salesController = require('../controllers/salesController');
  *   description: Sales management
  */
 
+// GET: All Sales - Protected: Manager, Sales Agent, Director
+/**
+ * @swagger
+ * /api/sales:
+ *   get:
+ *     summary: Get all sales records for the user's branch
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of sales
+ */
+router.get('/', verifyToken, checkRole(['Manager', 'Sales Agent', 'Director']), salesController.getSales);
+
 // POST: Cash Sale - Protected: Manager or Sales Agent
 
 /**

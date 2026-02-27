@@ -8,7 +8,24 @@ exports.getAllProcurements = async (req, res) => {
         if (req.user.role !== 'Director') {
             query.branch = req.user.branch;
         }
-        const procurements = await Procurement.find(query).sort({ date: -1 });
+
+        // Add search functionality
+        if (req.query.search) {
+            const search = req.query.search;
+            query.$or = [
+                { produceName: { $regex: search, $options: 'i' } },
+                { produceType: { $regex: search, $options: 'i' } },
+                { dealerName: { $regex: search, $options: 'i' } },
+            ];
+        }
+
+        let apiQuery = Procurement.find(query).sort({ date: -1 });
+
+        if (req.query.limit && !req.query.search) {
+            apiQuery = apiQuery.limit(parseInt(req.query.limit, 10));
+        }
+
+        const procurements = await apiQuery;
         success(res, procurements, "Procurements fetched successfully");
     } catch (err) {
         error(res, err.message, 500);
@@ -32,26 +49,21 @@ exports.getLowStock = async (req, res) => {
 // Add Procurement
 exports.addProcurement = async (req, res) => {
     try {
+        // This logic creates a new procurement record for every transaction,
+        // preserving historical data for reporting, such as dealer information.
         const managerBranch = req.user.branch;
-        const { produceName, produceType, tonnage, cost } = req.body;
-
-        const existingProcurement = await Procurement.findOne({ produceName, produceType, branch: managerBranch });
-
-        if (existingProcurement) {
-            existingProcurement.tonnage += tonnage;
-            existingProcurement.stock += tonnage;
-            existingProcurement.cost += cost;
-            existingProcurement.date = req.body.date;
-            existingProcurement.sellingPrice = req.body.sellingPrice;
-            
-            await existingProcurement.save();
-            success(res, existingProcurement, "Procurement stock updated successfully");
-        } else {
-            const newProcurement = new Procurement({ ...req.body, branch: managerBranch });
-            await newProcurement.save();
-            success(res, newProcurement, "New procurement recorded successfully");
-        }
+        const newProcurement = new Procurement({
+            ...req.body,
+            branch: managerBranch,
+            // Initialize the current stock of this batch to its procured tonnage.
+            stock: req.body.tonnage
+        });
+        await newProcurement.save();
+        success(res, newProcurement, "New procurement recorded successfully");
     } catch (err) {
+        if (err.name === 'ValidationError') {
+            return error(res, Object.values(err.errors).map(e => e.message).join(', '), 400);
+        }
         error(res, err.message, 500);
     }
 };
@@ -98,4 +110,3 @@ exports.deleteProcurement = async (req, res) => {
         error(res, err.message, 500);
     }
 };
-

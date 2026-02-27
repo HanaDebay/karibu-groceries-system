@@ -36,6 +36,10 @@ const creditSaleSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  time: {
+    type: String,
+    required: true
+  },
   produceName: {
     type: String,
     required: true,

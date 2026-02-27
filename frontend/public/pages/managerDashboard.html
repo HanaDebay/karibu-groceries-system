@@ -36,8 +36,8 @@
             <a href="#" onclick="showDashboard(event)" class="active"><i class="fa-solid fa-chart-line"></i><span> Dashboard</span></a>
             <a href="#" onclick="loadPage(event, 'recordProcurment.html')"><i class="fa-solid fa-box"></i><span> Procure Produce</span></a>
             <a href="#" onclick="loadPage(event, 'stockManagement.html')"><i class="fa-solid fa-warehouse"></i><span> Stock Management</span></a>
+             <a href="#" onclick="loadPage(event, 'recordSaleManager.html')"><i class="fa-solid fa-cart-shopping"></i><span> Record Sales</span></a>
             <a href="#" onclick="loadPage(event, 'salesReportManager.html')"><i class="fa-solid fa-credit-card"></i><span> Sales Report</span></a>
-            <a href="#" onclick="loadPage(event, 'recordSaleManager.html')"><i class="fa-solid fa-cart-shopping"></i><span> Record Sales</span></a>
             <a href="#"><i class="fa-solid fa-gear"></i><span> Settings</span></a> <!-- Assuming settings is a future feature or modal -->
             <a href="#" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><span> Logout</span></a>
         </nav>
@@ -59,25 +59,25 @@
             <div class="card">
                 <i class="fa-solid fa-seedling"></i>
                 <h4>Produce Types</h4>
-                <p>5</p>
+                <p id="totalProduce">0</p>
             </div>
 
             <div class="card">
                 <i class="fa-solid fa-scale-balanced"></i>
                 <h4>Total Stock</h4>
-                <p>18,500 KG</p>
+                <p id="totalStock">0 KG</p>
             </div>
 
             <div class="card">
                 <i class="fa-solid fa-coins"></i>
                 <h4>Today’s Sales</h4>
-                <p>UGX 4,200,000</p>
+                <p id="todaySales">UGX 0</p>
             </div>
 
             <div class="card">
                 <i class="fa-solid fa-clock"></i>
                 <h4>Credit Due</h4>
-                <p>UGX 1,800,000</p>
+                <p id="creditDue">UGX 0</p>
             </div>
         </section>
 

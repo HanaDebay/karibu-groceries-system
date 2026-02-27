@@ -5,13 +5,34 @@ const { success, error } = require('../utils/responseHandler');
 
 // Helper function to update stock
 async function updateStock(produceName, tonnageSold, branch) {
-    const product = await Procurement.findOne({ produceName: produceName, branch: branch });
-    if (!product) throw new Error(`Out of Stock: ${produceName} is not available at ${branch} branch`);
-    if (product.stock < tonnageSold) throw new Error(`Insufficient Stock: Only ${product.stock}kg of ${produceName} available at ${branch}`);
-    
-    product.stock -= tonnageSold;
-    await product.save();
-    return product;
+    // Find all batches with stock > 0, sorted by date (FIFO)
+    const batches = await Procurement.find({
+        produceName: produceName,
+        branch: branch,
+        stock: { $gt: 0 }
+    }).sort({ date: 1 });
+
+    const totalStock = batches.reduce((sum, batch) => sum + batch.stock, 0);
+
+    if (totalStock < tonnageSold) {
+        throw new Error(`Insufficient Stock: Only ${totalStock}kg of ${produceName} available at ${branch}`);
+    }
+
+    let remainingTonnageToDeduct = tonnageSold;
+    let lastBatchUsed = null;
+
+    for (const batch of batches) {
+        if (remainingTonnageToDeduct <= 0) break;
+        lastBatchUsed = batch;
+
+        const stockToTake = Math.min(batch.stock, remainingTonnageToDeduct);
+        batch.stock -= stockToTake;
+        remainingTonnageToDeduct -= stockToTake;
+        await batch.save();
+    }
+
+    // Return the last batch used for linking the sale record, which contains the produceId
+    return lastBatchUsed;
 }
 
 // NEW LOGIC: Get Aggregated Sales Stats (Director Only)
@@ -28,6 +49,37 @@ exports.getSalesStats = async (req, res) => {
             }
         ]);
         success(res, stats, "Sales statistics fetched successfully");
+    } catch (err) {
+        error(res, err.message, 500);
+    }
+};
+
+// Get All Sales (Cash & Credit) for Manager/Agent
+exports.getSales = async (req, res) => {
+    try {
+        const { branch } = req.user;
+        if (!branch) return error(res, "Branch not found in user token", 400);
+        
+        // Fetch both collections
+        const cashSales = await Sale.find({ branch }).lean();
+        const creditSales = await CreditSale.find({ branch }).lean();
+
+        // Normalize data structure
+        const formattedCash = cashSales.map(s => ({
+            ...s,
+            type: 'cash',
+            amount: s.amountPaid
+        }));
+
+        const formattedCredit = creditSales.map(s => ({
+            ...s,
+            type: 'credit',
+            amount: s.amountDue // Tracking value of credit sale
+        }));
+
+        const allSales = [...formattedCash, ...formattedCredit].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        success(res, allSales, "Sales records fetched successfully");
     } catch (err) {
         error(res, err.message, 500);
     }

@@ -1,189 +1,203 @@
-let stockData = []; // Initialize empty array
-
-const tableBody = document.querySelector("#stockTable tbody");
-const stockSearch = document.getElementById('stockSearch');
-
-let currentFilter = '';
-
-// Modal elements
-const editModal = document.getElementById('editModal');
-const deleteModal = document.getElementById('deleteModal');
-
-const editForm = document.getElementById('editForm');
-const editName = document.getElementById('editName');
-const editType = document.getElementById('editType');
-const editBranch = document.getElementById('editBranch');
-const editTonnage = document.getElementById('editTonnage');
-const editPrice = document.getElementById('editPrice');
-
-const editClose = document.getElementById('editClose');
-const editCancel = document.getElementById('editCancel');
-
-const deleteMessage = document.getElementById('deleteMessage');
-const deleteConfirm = document.getElementById('deleteConfirm');
-const deleteCancel = document.getElementById('deleteCancel');
-const deleteClose = document.getElementById('deleteClose');
-
-function getStatus(tonnage) {
-  if (tonnage <= 10) return "out";
-  if (tonnage <= 1000) return "low";
-  return "available";
-}
-
-function renderStock() {
-  tableBody.innerHTML = "";
-
-  const list = stockData.filter(item => {
-    if (!currentFilter) return true;
-    const q = currentFilter.toLowerCase();
-    return (
-      String(item.name).toLowerCase().includes(q) ||
-      String(item.type).toLowerCase().includes(q) ||
-      String(item.branch).toLowerCase().includes(q) ||
-      String(item.price).toLowerCase().includes(q) ||
-      String(item.tonnage).toLowerCase().includes(q)
-    );
-  });
-
-  list.forEach(item => {
-    const status = getStatus(item.tonnage);
-
-    const row = document.createElement("tr");
-    row.className = status === "available" ? "" : status;
-
-    row.innerHTML = `
-      <td>${item.name}</td>
-      <td>${item.type}</td>
-      <td>${item.branch}</td>
-      <td>${item.tonnage}</td>
-      <td>UGX ${item.price.toLocaleString()}</td>
-      <td>
-        ${
-          status === "available"
-            ? `<span class="badge success">Available</span>`
-            : status === "low"
-            ? `<span class="badge warning">Low Stock</span>`
-            : `<span class="badge danger">Out of Stock</span>`
-        }
-      </td>
-      <td class="actions">
-        <button class="btn edit" onclick="editStock(${item.id})">
-          <i class="fa-solid fa-pen"></i>
-        </button>
-        <button class="btn delete" onclick="deleteStock(${item.id})">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </td>
-    `;
-
-    tableBody.appendChild(row);
-  });
-}
-
-function editStock(id) {
-  openEditModal(id);
-}
-
-function deleteStock(id) {
-  openDeleteModal(id);
-}
-
-// --- Edit modal handlers ---
-function openEditModal(id) {
-  const item = stockData.find(i => i.id === id);
-  if (!item) return;
-  editForm.dataset.id = id;
-  editName.value = item.name;
-  editType.value = item.type;
-  editBranch.value = item.branch;
-  editTonnage.value = item.tonnage;
-  editPrice.value = item.price;
-  editModal.classList.add('open');
-}
-
-function closeEditModal() {
-  editModal.classList.remove('open');
-  delete editForm.dataset.id;
-}
-
-editClose.addEventListener('click', closeEditModal);
-editCancel.addEventListener('click', closeEditModal);
-
-editForm.addEventListener('submit', function (e) {
-  e.preventDefault();
-  const id = parseInt(editForm.dataset.id, 10);
-  const idx = stockData.findIndex(i => i.id === id);
-  if (idx === -1) return closeEditModal();
-
-  stockData[idx].name = editName.value;
-  stockData[idx].type = editType.value;
-  stockData[idx].branch = editBranch.value;
-  stockData[idx].tonnage = Number(editTonnage.value);
-  stockData[idx].price = Number(editPrice.value);
-
-  renderStock();
-  closeEditModal();
-});
-
-// --- Delete modal handlers ---
-let deleteTargetId = null;
-function openDeleteModal(id) {
-  const item = stockData.find(i => i.id === id);
-  if (!item) return;
-  deleteTargetId = id;
-  deleteMessage.textContent = `Delete "${item.name}"? This cannot be undone.`;
-  deleteModal.classList.add('open');
-}
-
-function closeDeleteModal() {
-  deleteModal.classList.remove('open');
-  deleteTargetId = null;
-}
-
-deleteClose.addEventListener('click', closeDeleteModal);
-deleteCancel.addEventListener('click', closeDeleteModal);
-
-deleteConfirm.addEventListener('click', function () {
-  if (deleteTargetId == null) return closeDeleteModal();
-  const index = stockData.findIndex(i => i.id === deleteTargetId);
-  if (index !== -1) stockData.splice(index, 1);
-  renderStock();
-  closeDeleteModal();
-});
-
-// Fetch Stock Data from Backend
-async function fetchStock() {
-  try {
+document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/procurement', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    let currentProcurements = [];
+    let searchTimeout;
+
+    // DOM Elements
+    const tableBody = document.querySelector("#stockTable tbody");
+    const printTbody = document.querySelector("#printTbody");
+    const stockSearch = document.getElementById('stockSearch');
+    const printBtn = document.getElementById('printBtn');
+    const printGeneratedDate = document.getElementById('printGeneratedDate');
+
+    // Modal Elements
+    const editModal = document.getElementById('editModal');
+    const deleteModal = document.getElementById('deleteModal');
+    const editForm = document.getElementById('editForm');
+    const deleteConfirm = document.getElementById('deleteConfirm');
+
+    // Toast function
+    function showToast(msg, type = "success") {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    // --- Data Fetching and Rendering ---
+    const getStatus = (stock) => {
+        if (stock <= 0) return { text: "Out of Stock", class: "danger" };
+        if (stock < 500) return { text: "Low Stock", class: "warning" };
+        return { text: "Available", class: "success" };
+    };
+
+    const renderTable = (data, tbody, isForPrint = false) => {
+        tbody.innerHTML = "";
+        const colspan = isForPrint ? 6 : 7;
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${colspan}">No stock records found.</td></tr>`;
+            return;
+        }
+        data.forEach(item => {
+            const status = getStatus(item.stock);
+            const row = document.createElement("tr");
+
+            const actionsHtml = isForPrint ? '' : `
+                <td class="actions">
+                    <button class="btn edit" onclick="openEditModal('${item._id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn delete" onclick="openDeleteModal('${item._id}')"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+
+            row.innerHTML = `
+                <td>${item.produceName}</td>
+                <td>${item.produceType}</td>
+                <td>${item.branch}</td>
+                <td>${item.stock.toLocaleString()}</td>
+                <td>${(item.sellingPrice || 0).toLocaleString()}</td>
+                <td><span class="badge ${status.class}">${status.text}</span></td>
+                ${actionsHtml}
+            `;
+            tbody.appendChild(row);
+        });
+    };
+
+    async function fetchAndDisplayStock(searchTerm = "") {
+        tableBody.innerHTML = '<tr><td colspan="7">Loading...</td></tr>';
+        let url = '/api/procurement?';
+        if (searchTerm) {
+            url += `search=${encodeURIComponent(searchTerm)}`;
+        } else {
+            url += 'limit=10';
+        }
+
+        try {
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Failed to fetch stock data.');
+            const resData = await response.json();
+            currentProcurements = resData.data || [];
+            renderTable(currentProcurements, tableBody, false);
+        } catch (err) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="error">${err.message}</td></tr>`;
+            showToast(err.message, 'error');
+        }
+    }
+
+    // --- Search and Print ---
+    stockSearch.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            fetchAndDisplayStock(stockSearch.value.trim());
+        }, 300);
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      // Map backend data to frontend structure
-      stockData = data.map(item => ({
-        id: item._id,
-        name: item.produceName,
-        type: item.produceType,
-        branch: item.branch,
-        tonnage: item.tonnage,
-        price: item.sellingPrice || 0 // Ensure price exists
-      }));
-      renderStock();
-    }
-  } catch (error) {
-    console.error("Error loading stock:", error);
-  }
-}
+    printBtn.addEventListener('click', async () => {
+        showToast('Generating print report...');
+        const searchTerm = stockSearch.value.trim();
+        const printUrl = searchTerm ? `/api/procurement?search=${encodeURIComponent(searchTerm)}` : '/api/procurement';
 
-// Initial load
-document.addEventListener('DOMContentLoaded', fetchStock);
+        try {
+            const response = await fetch(printUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Could not fetch full report data.');
+            const resData = await response.json();
+            const printData = resData.data || [];
+            renderTable(printData, printTbody, true);
+            if (printGeneratedDate) {
+                const branch = localStorage.getItem('branch') || 'N/A';
+                const now = new Date();
+                printGeneratedDate.textContent = `Branch: ${branch} | Date: ${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+            window.print();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    });
 
-// wire search
-if (stockSearch) {
-  stockSearch.addEventListener('input', function (e) {
-    currentFilter = e.target.value.trim();
-    renderStock();
-  });
-}
+    // --- Modal Handling ---
+    const closeModals = () => {
+        editModal.setAttribute('aria-hidden', 'true');
+        deleteModal.setAttribute('aria-hidden', 'true');
+    };
+
+    window.openEditModal = (id) => {
+        const item = currentProcurements.find(p => p._id === id);
+        if (!item) return;
+        editForm.dataset.id = id;
+        document.getElementById('editProduceName').value = item.produceName;
+        document.getElementById('editProduceType').value = item.produceType;
+        document.getElementById('editBranch').value = item.branch;
+        document.getElementById('editTonnage').value = item.tonnage;
+        document.getElementById('editSellingPrice').value = item.sellingPrice;
+        editModal.setAttribute('aria-hidden', 'false');
+    };
+
+    let deleteTargetId = null;
+    window.openDeleteModal = (id) => {
+        const item = currentProcurements.find(p => p._id === id);
+        if (!item) return;
+        deleteTargetId = id;
+        document.getElementById('deleteMessage').textContent = `Are you sure you want to delete the procurement record for "${item.produceName} (${item.produceType})"? This cannot be undone.`;
+        deleteModal.setAttribute('aria-hidden', 'false');
+    };
+
+    // Add event listeners to close buttons
+    document.querySelectorAll('.modal-close, .modal-actions .btn:not([type="submit"])').forEach(el => {
+        el.addEventListener('click', closeModals);
+    });
+
+    // --- CRUD Operations ---
+    editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = editForm.dataset.id;
+        const updates = {
+            produceName: document.getElementById('editProduceName').value,
+            produceType: document.getElementById('editProduceType').value,
+            tonnage: parseInt(document.getElementById('editTonnage').value, 10),
+            sellingPrice: parseFloat(document.getElementById('editSellingPrice').value),
+        };
+
+        try {
+            const response = await fetch(`/api/procurement/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(updates),
+            });
+            const resData = await response.json();
+            if (!response.ok) throw new Error(resData.message || 'Failed to update record.');
+
+            showToast('Procurement updated successfully!');
+            closeModals();
+            fetchAndDisplayStock(stockSearch.value.trim());
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    });
+
+    deleteConfirm.addEventListener('click', async () => {
+        if (!deleteTargetId) return;
+        try {
+            const response = await fetch(`/api/procurement/${deleteTargetId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const resData = await response.json();
+            if (!response.ok) throw new Error(resData.message || 'Failed to delete record.');
+
+            showToast('Procurement deleted successfully!');
+            closeModals();
+            deleteTargetId = null;
+            fetchAndDisplayStock(stockSearch.value.trim());
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    });
+
+    // Initial Load
+    fetchAndDisplayStock();
+});

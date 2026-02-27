@@ -57,6 +57,30 @@ body {
   box-shadow: 0 5px 15px rgba(0,0,0,0.08);
   overflow-x: auto;
 }
+/* Report Controls */
+.report-controls {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.report-controls button {
+  background: var(--primary);
+  color: var(--light);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+.report-controls button.active,
+.report-controls button:hover {
+  background: var(--accent);
+  color: var(--primary);
+}
 
 /* Table */
 .stock-table {

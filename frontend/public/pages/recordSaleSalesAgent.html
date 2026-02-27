@@ -31,16 +31,14 @@
     <!-- Form Container -->
     <main class="form-container">
       <!-- Cash Sale Form -->
-      <form id="cashSaleForm" class="sale-form">
+      <form id="cashSaleForm" class="sale-form" novalidate>
         <h4>Cash Sale</h4>
 
         <div class="form-group">
           <label>Produce Name</label>
-          <input
-            type="text"
-            name="produceName"
-            placeholder="Enter produce name"
-          />
+          <select name="produceName" class="produce-select" required>
+            <option value="">Select Produce</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -69,29 +67,19 @@
 
         <div class="form-group">
           <label>Sales Agent</label>
-          <input
-            type="text"
-            name="salesAgent"
-            value="Logged-in Agent"
-            readonly
-          />
+          <input type="text" name="salesAgent" class="agent-name" readonly />
         </div>
 
-        <button type="submit" class="submit-btn">Record Cash Sale</button>
+        <button type="submit" class="submit-btn">Add to Cart</button>
       </form>
 
       <!-- Credit Sale Form -->
-      <form id="creditSaleForm" class="sale-form hidden">
+      <form id="creditSaleForm" class="sale-form hidden" novalidate>
         <h4>Credit Sale</h4>
 
         <div class="form-group">
-            <label>Sales Agent</label>
-            <input
-                type="text"
-                name="salesAgent"
-                value="Logged-in Agent"
-                readonly
-            />
+          <label>Sales Agent</label>
+          <input type="text" name="salesAgent" class="agent-name" readonly />
         </div>
 
         <div class="form-group">
@@ -116,16 +104,14 @@
 
         <div class="form-group">
           <label>Produce Name</label>
-          <input
-            type="text"
-            name="produceName"
-            placeholder="Enter produce name"
-          />
+          <select name="produceName" class="produce-select" required>
+            <option value="">Select Produce</option>
+          </select>
         </div>
 
         <div class="form-group">
           <label>Produce Type</label>
-          <input type="text" name="type" placeholder="Enter type" />
+          <input type="text" name="produceType" placeholder="Auto-filled" readonly />
         </div>
 
         <div class="form-group">
@@ -139,18 +125,37 @@
         </div>
 
         <div class="form-group">
+          <label>Dispatch Date</label>
+          <input type="date" name="dispatchDate" required />
+        </div>
+
+        <div class="form-group">
           <label>Due Date</label>
           <input type="date" name="dueDate" />
         </div>
 
-        <div class="form-group">
-          <label>Dispatch Date</label>
-          <input type="date" name="dispatchDate" value="" />
-        </div>
-
-        <button type="submit" class="submit-btn">Record Credit Sale</button>
+        <button type="submit" class="submit-btn">Add to Cart</button>
       </form>
     </main>
+
+    <!-- Cart / Sale Items Section -->
+    <section id="cartSection" class="form-container" style="margin-top: 20px; display: none;">
+      <h4>Sale Items</h4>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+        <thead>
+          <tr style="background: #f4f6f8; text-align: left;">
+            <th style="padding: 10px;">Produce</th>
+            <th style="padding: 10px;">Qty (KG)</th>
+            <th style="padding: 10px;">Amount</th>
+            <th style="padding: 10px;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="cartTableBody">
+          <!-- Items go here -->
+        </tbody>
+      </table>
+      <button id="checkoutBtn" class="submit-btn" style="width: 100%; background-color: #27ae60;">Complete Sale & Print Receipt</button>
+    </section>
 
     <!-- Toast -->
     <div id="toast" class="toast"></div>

@@ -47,13 +47,25 @@
           <th>Type</th>
           <th>Tonnage (KG)</th>
           <th>Buyer Name</th>
-          <th>Amount Paid (UGX)</th>
-          <th>Sales Agent</th>
+          <th id="amountHeader">Amount Paid (UGX)</th>
+          <th>Due Date</th>
+          <th>Recorded By</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="salesBody">
         <!-- Table rows populated by JS -->
       </tbody>
+      <tfoot>
+        <tr style="font-weight: bold; background-color: #f8f9fa;">
+          <td colspan="4" style="text-align: right; padding-right: 10px;">TOTALS:</td>
+          <td id="totalTonnage">0</td>
+          <td></td>
+          <td id="totalAmount">0</td>
+          <td id="footerDueDate"></td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
     </table>
   </section>
 
