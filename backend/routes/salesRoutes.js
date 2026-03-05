@@ -85,6 +85,9 @@ router.post('/cash', verifyToken, checkRole(['Manager', 'Sales Agent']), salesCo
  */
 router.post('/credit', verifyToken, checkRole(['Manager', 'Sales Agent']), salesController.createCreditSale);
 
+// POST: Receive Credit Payment - Protected: Manager, Sales Agent, Director
+router.post('/credit/:id/payment', verifyToken, checkRole(['Manager', 'Sales Agent', 'Director']), salesController.receiveCreditPayment);
+
 // --- UPDATE & DELETE ROUTES (With Stock Adjustment Logic) ---
 
 // DELETE: Cash Sale

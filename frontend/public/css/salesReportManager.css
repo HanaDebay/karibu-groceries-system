@@ -106,7 +106,146 @@ body {
 
 .report-table tr:hover {
   background: #eaeaea;
+  cursor: default;
+}
+
+.action-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
+}
+
+.print-btn {
+  background: #2c3e50;
+  color: #fff;
+}
+
+.pay-btn {
+  margin-left: 6px;
+  background: #d4af37;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.pay-btn:hover {
+  background: #2c3e50;
+  color: #fff;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.toast {
+  min-width: 250px;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 14px;
+  position: fixed;
+  z-index: 1100;
+  right: 20px;
+  top: 20px;
+  opacity: 0;
+  transition: 0.2s ease;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.toast.success {
+  background: #2ecc71;
+}
+
+.toast.error {
+  background: #e74c3c;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.payment-modal {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.modal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.modal-group input,
+.modal-group select,
+.modal-group textarea {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-cancel {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.btn-submit {
+  border: none;
+  background: #27ae60;
+  color: #fff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Responsive */

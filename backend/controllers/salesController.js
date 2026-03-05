@@ -3,6 +3,16 @@ const CreditSale = require('../models/CreditSale');
 const Procurement = require('../models/Procurement');
 const { success, error } = require('../utils/responseHandler');
 
+function deriveCreditTotals(sale) {
+    // Normalize legacy + new credit fields so all callers use one consistent shape.
+    const amountDue = Number(sale.amountDue || 0);
+    const amountPaid = Number(sale.amountPaid || 0);
+    const totalAmount = Number(sale.totalAmount || (amountDue + amountPaid));
+    const remaining = Math.max(0, totalAmount - amountPaid);
+    const status = remaining <= 0 ? 'paid' : amountPaid > 0 ? 'partial' : 'pending';
+    return { amountDue: remaining, amountPaid, totalAmount, status };
+}
+
 // Helper function to update stock
 async function updateStock(produceName, tonnageSold, branch) {
     // Find all batches with stock > 0, sorted by date (FIFO)
@@ -157,15 +167,21 @@ exports.getDirectorCreditOverview = async (req, res) => {
     try {
         const creditSales = await CreditSale.find({}).lean();
 
-        const formatted = creditSales.map(s => ({
+        const formatted = creditSales.map(s => {
+            const totals = deriveCreditTotals(s);
+            return ({
             id: s._id,
             buyer: s.buyerName,
             branch: s.branch,
             agent: s.recordedBy,
             produce: s.produceName,
-            amountDue: s.amountDue,
+            amountDue: totals.amountDue,
+            amountPaid: totals.amountPaid,
+            totalAmount: totals.totalAmount,
+            paymentStatus: s.paymentStatus || totals.status,
             dueDate: s.dueDate
-        }));
+        });
+        });
 
         const sorted = formatted.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
         success(res, sorted, "Director credit overview fetched successfully");
@@ -191,13 +207,25 @@ exports.getSales = async (req, res) => {
             amount: s.amountPaid
         }));
 
-        const formattedCredit = creditSales.map(s => ({
-            ...s,
-            type: 'credit',
-            amount: s.amountDue // Tracking value of credit sale
-        }));
+        const formattedCredit = creditSales.map(s => {
+            // Credit rows are returned with computed outstanding totals for UI consistency.
+            const totals = deriveCreditTotals(s);
+            return ({
+                ...s,
+                type: 'credit',
+                amountDue: totals.amountDue,
+                amountPaid: totals.amountPaid,
+                totalAmount: totals.totalAmount,
+                paymentStatus: s.paymentStatus || totals.status,
+                amount: totals.amountDue
+            });
+        });
 
-        const allSales = [...formattedCash, ...formattedCredit].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const allSales = [...formattedCash, ...formattedCredit].sort((a, b) => {
+            const dateA = new Date(a.date || a.dispatchDate || 0);
+            const dateB = new Date(b.date || b.dispatchDate || 0);
+            return dateB - dateA;
+        });
 
         success(res, allSales, "Sales records fetched successfully");
     } catch (err) {
@@ -239,8 +267,14 @@ exports.createCreditSale = async (req, res) => {
 
         await updateStock(produceName, tonnage, branch);
 
+        const initialAmountDue = Number(req.body.amountDue || 0);
+        // Snapshot original credit value at creation time.
         const newCreditSale = new CreditSale({
             ...req.body,
+            amountDue: initialAmountDue,
+            totalAmount: initialAmountDue,
+            amountPaid: 0,
+            paymentStatus: 'pending',
             recordedBy: fullName,
             branch: branch
         });
@@ -313,6 +347,59 @@ exports.deleteCreditSale = async (req, res) => {
         }
         await sale.deleteOne();
         success(res, null, "Credit sale deleted and stock restored");
+    } catch (err) {
+        error(res, err.message, 500);
+    }
+};
+
+// Receive Credit Payment
+exports.receiveCreditPayment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { fullName, role, branch } = req.user;
+        const amount = Number(req.body.amount || 0);
+        const method = String(req.body.method || 'cash');
+        const note = String(req.body.note || '');
+        const paidOn = req.body.paidOn ? new Date(req.body.paidOn) : new Date();
+
+        // Reject invalid or impossible payments before touching DB state.
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return error(res, "Payment amount must be greater than 0", 400);
+        }
+        if (Number.isNaN(paidOn.getTime())) {
+            return error(res, "Invalid payment date", 400);
+        }
+
+        const sale = await CreditSale.findById(id);
+        if (!sale) return error(res, "Credit sale not found", 404);
+
+        if (role !== 'Director' && sale.branch !== branch) {
+            return error(res, "Access denied. You can only receive payments for your branch.", 403);
+        }
+
+        const current = deriveCreditTotals(sale);
+        if (current.amountDue <= 0) {
+            return error(res, "This credit sale is already fully paid", 400);
+        }
+        if (amount > current.amountDue) {
+            return error(res, `Payment exceeds outstanding balance (UGX ${current.amountDue})`, 400);
+        }
+
+        // Persist payment trail and recompute balance atomically on this record.
+        sale.totalAmount = current.totalAmount;
+        sale.amountPaid = current.amountPaid + amount;
+        sale.amountDue = Math.max(0, sale.totalAmount - sale.amountPaid);
+        sale.paymentStatus = sale.amountDue <= 0 ? 'paid' : sale.amountPaid > 0 ? 'partial' : 'pending';
+        sale.payments.push({
+            amount,
+            paidOn,
+            method,
+            note,
+            receivedBy: fullName
+        });
+
+        await sale.save();
+        success(res, sale, "Credit payment received successfully");
     } catch (err) {
         error(res, err.message, 500);
     }

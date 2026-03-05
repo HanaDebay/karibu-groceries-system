@@ -48,6 +48,9 @@
           <th>Tonnage (KG)</th>
           <th>Buyer Name</th>
           <th id="amountHeader">Amount Paid (UGX)</th>
+          <th id="paidHeader" style="display:none;">Paid (UGX)</th>
+          <th id="totalCreditHeader" style="display:none;">Total Credit (UGX)</th>
+          <th id="statusHeader" style="display:none;">Status</th>
           <th>Due Date</th>
           <th>Recorded By</th>
           <th>Action</th>
@@ -62,12 +65,17 @@
           <td id="totalTonnage">0</td>
           <td></td>
           <td id="totalAmount">0</td>
+          <td id="totalPaid" style="display:none;">0</td>
+          <td id="totalCredit" style="display:none;">0</td>
+          <td id="footerStatus" style="display:none;"></td>
           <td id="footerDueDate"></td>
           <td colspan="2"></td>
         </tr>
       </tfoot>
     </table>
   </section>
+
+  <div id="toast" class="toast"></div>
 
   <!-- JS -->
   <script src="../js/responsive-utils.js"></script>

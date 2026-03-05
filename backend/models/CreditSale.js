@@ -25,8 +25,32 @@ const creditSaleSchema = new mongoose.Schema({
   amountDue: {
     type: Number,
     required: true,
-    min: 10000 // "not less than 5 characters"
+    min: 0
   },
+  totalAmount: {
+    type: Number,
+    required: false,
+    min: 0
+  },
+  amountPaid: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'partial', 'paid'],
+    default: 'pending'
+  },
+  payments: [
+    {
+      amount: { type: Number, required: true, min: 1 },
+      paidOn: { type: Date, default: Date.now },
+      method: { type: String, default: 'cash' },
+      note: { type: String, default: '' },
+      receivedBy: { type: String, required: true }
+    }
+  ],
   recordedBy: {
     type: String,
     required: true,
@@ -61,6 +85,21 @@ const creditSaleSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+});
+
+creditSaleSchema.pre('validate', function() {
+  // Ensure totalAmount/amountPaid/amountDue remain coherent on every save.
+  if (!this.totalAmount || this.totalAmount <= 0) {
+    this.totalAmount = Number(this.amountDue || 0) + Number(this.amountPaid || 0);
+  }
+
+  const total = Number(this.totalAmount || 0);
+  const paid = Number(this.amountPaid || 0);
+  this.amountDue = Math.max(0, total - paid);
+
+  if (this.amountDue <= 0) this.paymentStatus = 'paid';
+  else if (paid > 0) this.paymentStatus = 'partial';
+  else this.paymentStatus = 'pending';
 });
 
 module.exports = mongoose.model('CreditSale', creditSaleSchema);

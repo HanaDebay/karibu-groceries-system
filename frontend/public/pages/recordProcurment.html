@@ -113,7 +113,7 @@
          
         <div id="addProduce" class="tab-content" style="display: block;">
 
-            <form id="procureForm" class="sale-form">
+            <form id="procureForm" class="sale-form" novalidate>
               <h4>Record New Produce</h4>
               
               <div class="form-group">
@@ -142,7 +142,7 @@
               </div>
 
               <div class="form-group">
-              <label for="cost">Cost (UGX)</label>
+              <label for="cost">Total Cost (UGX)</label>
               <input type="number" name="cost" id="cost" placeholder="e.g 4500000" />
               </div>
 
@@ -162,8 +162,13 @@
               </div>
 
               <div class="form-group">
-              <label for="price">Selling Price (UGX)</label>
-              <input type="number" name="sellingPrice" id="price" placeholder="e.g 5000" />
+              <label for="price">Selling Price Per KG (UGX)</label>
+              <input type="number" name="sellingPricePerKg" id="price" placeholder="e.g 5000" />
+              </div>
+
+              <div class="form-group">
+              <label for="costPerKg">Cost Per KG (UGX)</label>
+              <input type="text" name="costPerKg" id="costPerKg" readonly />
               </div>
 
               <button type="submit" class="submit-btn" id="submit-btn">

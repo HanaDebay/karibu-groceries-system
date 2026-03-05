@@ -2,6 +2,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path")
+const fs = require("fs");
 const connectDB = require("./backend/config/db.js");
 
 
@@ -42,15 +43,20 @@ app.use(cors());
 //adds middleware to parse incoming JSON request automatically
 app.use(express.json());
 
-// Serve static files from frontend/public
-app.use(express.static(path.join(__dirname, 'frontend/public')));
+const legacyPublicPath = path.join(__dirname, 'frontend/public');
+const vueDistPath = path.join(__dirname, 'frontend-vue/dist');
+const hasVueBuild = fs.existsSync(vueDistPath);
+
+// Keep legacy pages available during migration
+app.use('/legacy', express.static(legacyPublicPath));
+
+if (hasVueBuild) {
+  app.use(express.static(vueDistPath));
+} else {
+  app.use(express.static(legacyPublicPath));
+}
 
 //connect the application to mongoDB
-// mongoose
-//   .connect(process.env.MONGO_URI)
-//   .then(() => console.log("MongoDB Connected"))
-//   .catch((err) => console.error(err));
-
 connectDB();
 
 
@@ -61,6 +67,11 @@ app.use("/api/sales", salesRoutes);
 app.use("/api/branches", branchRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
+if (hasVueBuild) {
+  app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.join(vueDistPath, 'index.html'));
+  });
+}
 
 
 

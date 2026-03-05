@@ -118,6 +118,22 @@
 input, textarea, select {
   max-width: 100%;
   font-size: 16px; /* Prevents zoom on iOS */
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border: 1px solid #16a34a !important;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+
+input:required:user-invalid:not(:focus),
+textarea:required:user-invalid:not(:focus),
+select:required:user-invalid:not(:focus) {
+  border: 1px solid #e74c3c !important;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.12);
 }
 
 @media (max-width: 768px) {

@@ -47,11 +47,33 @@ const procurementSchema = new mongoose.Schema({
   },
   sellingPrice: {
     type: Number,
-    required: true
+    required: false
+  },
+  sellingPricePerKg: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  costPerKg: {
+    type: Number,
+    required: false,
+    min: 0
   },
   stock: {
     type: Number,
     default: function() { return this.tonnage; } // Automatically set stock equal to tonnage initially
+  }
+});
+
+procurementSchema.pre('validate', function() {
+  if (!this.sellingPricePerKg && this.sellingPrice) {
+    this.sellingPricePerKg = this.sellingPrice;
+  }
+  if (!this.sellingPrice && this.sellingPricePerKg) {
+    this.sellingPrice = this.sellingPricePerKg;
+  }
+  if ((!this.costPerKg || this.costPerKg <= 0) && this.tonnage && this.cost) {
+    this.costPerKg = Number(this.cost) / Number(this.tonnage);
   }
 });
 

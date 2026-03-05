@@ -49,14 +49,23 @@ exports.getLowStock = async (req, res) => {
 // Add Procurement
 exports.addProcurement = async (req, res) => {
     try {
+        const payload = { ...req.body };
+        const tonnage = Number(payload.tonnage || 0);
+        const cost = Number(payload.cost || 0);
+        const sellingPricePerKg = Number((payload.sellingPricePerKg ?? payload.sellingPrice) || 0);
+
+        payload.sellingPricePerKg = sellingPricePerKg;
+        payload.sellingPrice = sellingPricePerKg;
+        payload.costPerKg = tonnage > 0 ? cost / tonnage : 0;
+
         // This logic creates a new procurement record for every transaction,
         // preserving historical data for reporting, such as dealer information.
         const managerBranch = req.user.branch;
         const newProcurement = new Procurement({
-            ...req.body,
+            ...payload,
             branch: managerBranch,
             // Initialize the current stock of this batch to its procured tonnage.
-            stock: req.body.tonnage
+            stock: tonnage
         });
         await newProcurement.save();
         success(res, newProcurement, "New procurement recorded successfully");
@@ -72,7 +81,7 @@ exports.addProcurement = async (req, res) => {
 exports.updateProcurement = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        const updates = { ...req.body };
         
         const procurement = await Procurement.findById(id);
         if (!procurement) return error(res, "Procurement record not found", 404);
@@ -81,13 +90,25 @@ exports.updateProcurement = async (req, res) => {
             return error(res, "Access denied. You can only edit procurements for your branch.", 403);
         }
 
-        if (updates.tonnage && updates.tonnage !== procurement.tonnage) {
-            const difference = updates.tonnage - procurement.tonnage;
+        if (updates.tonnage && Number(updates.tonnage) !== procurement.tonnage) {
+            const difference = Number(updates.tonnage) - procurement.tonnage;
             if (procurement.stock + difference < 0) {
                  return error(res, "Cannot reduce tonnage: Resulting stock would be negative.", 400);
             }
             procurement.stock += difference;
-            procurement.tonnage = updates.tonnage;
+            procurement.tonnage = Number(updates.tonnage);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(updates, 'sellingPricePerKg') || Object.prototype.hasOwnProperty.call(updates, 'sellingPrice')) {
+            const price = Number((updates.sellingPricePerKg ?? updates.sellingPrice) || 0);
+            updates.sellingPricePerKg = price;
+            updates.sellingPrice = price;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(updates, 'cost') || Object.prototype.hasOwnProperty.call(updates, 'tonnage')) {
+            const effectiveCost = Number((updates.cost ?? procurement.cost) || 0);
+            const effectiveTonnage = Number((updates.tonnage ?? procurement.tonnage) || 0);
+            updates.costPerKg = effectiveTonnage > 0 ? effectiveCost / effectiveTonnage : 0;
         }
 
         Object.assign(procurement, updates);

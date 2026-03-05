@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function getReservedInCart(produceName) {
+    // Prevent over-selling while user is still building a multi-item cart.
     return cart
       .filter((item) => item.produceName === produceName)
       .reduce((sum, item) => sum + Number(item.tonnage || 0), 0);
@@ -121,11 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (branch && item.branch !== branch) return;
 
         if (!stockMap[item.produceName]) {
+          // Store one per-produce entry with aggregated stock and sale price per KG.
           stockMap[item.produceName] = {
             name: item.produceName,
             type: item.produceType,
             totalStock: 0,
-            price: item.sellingPrice || 0,
+            sellingPricePerKg: Number(item.sellingPricePerKg ?? item.sellingPrice ?? 0),
           };
         }
 
@@ -150,8 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const remaining = Math.max(0, item.totalStock - reserved);
         const option = document.createElement("option");
         option.value = item.name;
-        option.textContent = `${item.name} (${remaining}kg avail)`;
-        option.dataset.price = String(item.price || 0);
+        option.textContent = `${item.name}`;
+        option.dataset.price = String(item.sellingPricePerKg || 0);
         option.dataset.type = item.type || "";
         option.dataset.remaining = String(remaining);
         option.disabled = remaining <= 0;
@@ -159,8 +161,17 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (currentValue) select.value = currentValue;
+      const restoredSelected = select.options[select.selectedIndex];
+      const restoredForm = select.closest("form");
+      if (restoredForm) {
+        const availableStockInput = restoredForm.querySelector('input[name="availableStock"]');
+        if (availableStockInput) {
+          availableStockInput.value = restoredSelected?.dataset?.remaining || "";
+        }
+      }
 
       if (!select.dataset.bound) {
+        // Bind once: keeps listeners stable when dropdown is repopulated.
         select.addEventListener("change", (e) => {
           const selected = e.target.options[e.target.selectedIndex];
           const form = e.target.closest("form");
@@ -168,6 +179,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const typeInput = form.querySelector('input[name="produceType"]');
           if (typeInput && selected.dataset.type) typeInput.value = selected.dataset.type;
+          const availableStockInput = form.querySelector('input[name="availableStock"]');
+          if (availableStockInput) availableStockInput.value = selected.dataset.remaining || "";
 
           const price = Number(selected.dataset.price || 0);
           const tonnageInput = form.querySelector('input[name="tonnage"]');

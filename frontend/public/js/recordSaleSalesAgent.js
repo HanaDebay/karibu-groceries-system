@@ -1,6 +1,7 @@
 // ===== Toast =====
 function showToast(msg, type = "success") {
   const toast = document.getElementById("toast");
+  if (!toast) return;
   toast.textContent = msg;
   toast.className = `toast ${type} show`;
   setTimeout(() => toast.classList.remove("show"), 3000);
@@ -26,68 +27,96 @@ creditBtn.onclick = () => {
   cashBtn.classList.remove("active");
 };
 
-// ===== Global State & Init =====
+// ===== State =====
 let availableStock = [];
-let cart = []; // Store items for the current transaction
+let cart = [];
 const token = localStorage.getItem("token");
 const branch = localStorage.getItem("branch");
-const userName = localStorage.getItem("userName");
+const userName = localStorage.getItem("userName") || "Sales Agent";
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!token) {
-    window.location.href = "login.html";
-    return;
-  }
+// ===== Validation =====
+const alphaNumRegex = /^[a-zA-Z0-9 ]{2,}$/;
+const ugPhoneRegex = /^(?:\+256|0)7\d{8}$/;
+const ninRegex = /^(CM|CF)[A-Z0-9]{12}$/i;
 
-  // Auto-fill Agent Name
-  document.querySelectorAll(".agent-name").forEach(input => {
-    input.value = userName || "Sales Agent";
+function isValidAmount(amount) {
+  return !Number.isNaN(Number(amount)) && String(Math.trunc(Number(amount))).length >= 5;
+}
+
+function getReservedInCart(produceName) {
+  // Reserve quantities in cart to stop overselling before checkout is submitted.
+  return cart
+    .filter((item) => item.produceName === produceName)
+    .reduce((sum, item) => sum + Number(item.tonnage || 0), 0);
+}
+
+function setDefaults() {
+  document.querySelectorAll(".agent-name").forEach((input) => {
+    input.value = userName;
   });
 
-  // Set default date
-  const today = new Date().toISOString().split('T')[0];
-  document.querySelectorAll('input[type="date"]').forEach(input => {
+  const today = new Date().toISOString().split("T")[0];
+  document.querySelectorAll('input[type="date"]').forEach((input) => {
     if (!input.value) input.value = today;
   });
 
-  fetchStock();
+  const branchLabel = document.querySelector(".topbar span");
+  if (branch && branchLabel) {
+    branchLabel.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${branch} Branch`;
+  }
+}
 
-  // Checkout Listener
-  document.getElementById('checkoutBtn').addEventListener('click', processCheckout);
-  // Hide cart initially
-  updateCartUI();
-});
+function selectedStock(name) {
+  return availableStock.find((item) => item.name === name);
+}
+
+function updateAvailableStockForForm(form) {
+  if (!form) return;
+  const select = form.querySelector('select[name="produceName"]');
+  const input = form.querySelector('input[name="availableStock"]');
+  if (!select || !input) return;
+
+  const productName = select.value;
+  if (!productName) {
+    input.value = "";
+    return;
+  }
+
+  const stockItem = selectedStock(productName);
+  const remaining = stockItem ? Math.max(0, Number(stockItem.totalStock || 0) - getReservedInCart(productName)) : 0;
+  input.value = String(remaining);
+}
 
 async function fetchStock() {
   try {
-    // Fetching procurement to calculate available stock
     const response = await fetch('/api/procurement', {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }
     });
-    
-    if (response.ok) {
-      const resData = await response.json();
-      const procurements = resData.data || [];
 
-      // Aggregate stock by produce name for this branch
-      const stockMap = {};
-      procurements.forEach(item => {
-        if (item.branch === branch && item.stock > 0) {
-          if (!stockMap[item.produceName]) {
-            stockMap[item.produceName] = {
-              name: item.produceName,
-              type: item.produceType,
-              totalStock: 0,
-              price: item.sellingPrice || 0
-            };
-          }
-          stockMap[item.produceName].totalStock += item.stock;
-        }
-      });
+    if (!response.ok) throw new Error("Failed to fetch stock");
 
-      availableStock = Object.values(stockMap);
-      populateProduceSelects();
-    }
+    const resData = await response.json();
+    const procurements = resData.data || [];
+
+    const stockMap = {};
+    procurements.forEach((item) => {
+      if (item.branch !== branch || Number(item.stock || 0) <= 0) return;
+      if (!stockMap[item.produceName]) {
+        // Aggregate by produce and keep one unit-price-per-KG for amount calculations.
+        stockMap[item.produceName] = {
+          name: item.produceName,
+          type: item.produceType,
+          totalStock: 0,
+          sellingPricePerKg: Number(item.sellingPricePerKg ?? item.sellingPrice ?? 0)
+        };
+      }
+      stockMap[item.produceName].totalStock += Number(item.stock || 0);
+    });
+
+    availableStock = Object.values(stockMap);
+    populateProduceSelects();
+    updateAvailableStockForForm(cashForm);
+    updateAvailableStockForForm(creditForm);
   } catch (error) {
     console.error("Error fetching stock:", error);
     showToast("Failed to load stock data", "error");
@@ -95,414 +124,275 @@ async function fetchStock() {
 }
 
 function populateProduceSelects() {
-  const selects = document.querySelectorAll(".produce-select");
-  selects.forEach(select => {
+  document.querySelectorAll(".produce-select").forEach((select) => {
+    const currentValue = select.value;
     select.innerHTML = '<option value="">Select Produce</option>';
-    availableStock.forEach(item => {
+
+    availableStock.forEach((item) => {
+      const remaining = Math.max(0, Number(item.totalStock || 0) - getReservedInCart(item.name));
       const option = document.createElement("option");
       option.value = item.name;
-      option.textContent = `${item.name} (${item.totalStock}kg avail)`;
-      option.dataset.price = item.price;
-      option.dataset.type = item.type;
+      option.textContent = item.name;
+      option.dataset.price = String(item.sellingPricePerKg || 0);
+      option.dataset.type = item.type || "";
+      option.dataset.remaining = String(remaining);
+      option.disabled = remaining <= 0;
       select.appendChild(option);
     });
-    
-    // Add change listener for auto-filling details
-    select.addEventListener("change", (e) => {
-      const selected = e.target.options[e.target.selectedIndex];
-      const form = e.target.closest("form");
-      
-      // Auto-fill Type
-      const typeInput = form.querySelector('input[name="produceType"]') || form.querySelector('input[name="type"]');
-      if (typeInput && selected.dataset.type) typeInput.value = selected.dataset.type;
 
-      // Auto-calc Amount
-      const price = selected.dataset.price;
-      const tonnageInput = form.querySelector('input[name="tonnage"]');
-      const amountInput = form.querySelector('input[name="amountPaid"]') || form.querySelector('input[name="amountDue"]');
-      
-      if (price && tonnageInput && amountInput) {
-        const calc = () => {
-           if(tonnageInput.value) amountInput.value = tonnageInput.value * price;
-        };
-        tonnageInput.oninput = calc;
-        calc();
-      }
-    });
+    if (currentValue) select.value = currentValue;
+
+    if (!select.dataset.bound) {
+      // Bind only once so repopulating options does not duplicate listeners.
+      select.addEventListener("change", (e) => {
+        const form = e.target.closest("form");
+        if (!form) return;
+        const selected = e.target.options[e.target.selectedIndex];
+
+        const typeInput = form.querySelector('input[name="produceType"]');
+        if (typeInput) typeInput.value = selected?.dataset?.type || "";
+
+        updateAvailableStockForForm(form);
+
+        const price = Number(selected?.dataset?.price || 0);
+        const tonnageInput = form.querySelector('input[name="tonnage"]');
+        const amountInput = form.querySelector('input[name="amountPaid"], input[name="amountDue"]');
+        if (tonnageInput && amountInput) {
+          const recalc = () => {
+            if (!tonnageInput.value || !price) return;
+            amountInput.value = String(Number(tonnageInput.value) * price);
+          };
+          tonnageInput.oninput = recalc;
+          recalc();
+        }
+      });
+      select.dataset.bound = "true";
+    }
   });
 }
 
-// ===== Validation Helpers =====
-const alphaNumRegex = /^[a-zA-Z0-9 ]{2,}$/;
-const ugPhoneRegex = /^(?:\+256|0)7\d{8}$/;
-const ninRegex = /^(CM|CF)[A-Z0-9]{12}$/; //e.g. CM123456789012 or CF123456789012
-
-function isValidAmount(amount) {
-  return !isNaN(amount) && amount.toString().length >= 5;
+function addToCart(item) {
+  cart.push(item);
+  updateCartUI();
+  populateProduceSelects();
+  updateAvailableStockForForm(cashForm);
+  updateAvailableStockForForm(creditForm);
+  showToast("Item added to cart");
 }
 
-// ===== Add to Cart (Cash) =====
+function updateCartUI() {
+  const cartSection = document.getElementById('cartSection');
+  const tbody = document.getElementById('cartTableBody');
+  if (!cartSection || !tbody) return;
+
+  if (!cart.length) {
+    cartSection.style.display = 'none';
+    tbody.innerHTML = '';
+    return;
+  }
+
+  cartSection.style.display = 'block';
+  tbody.innerHTML = '';
+
+  cart.forEach((item, index) => {
+    const amount = Number(item.amountPaid || item.amountDue || 0);
+    tbody.innerHTML += `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 10px;">${item.produceName}</td>
+        <td style="padding: 10px;">${item.tonnage}</td>
+        <td style="padding: 10px;">${amount.toLocaleString()}</td>
+        <td style="padding: 10px;"><button onclick="removeFromCart(${index})" style="color: red; border: none; background: none; cursor: pointer;"><i class="fa-solid fa-trash"></i></button></td>
+      </tr>
+    `;
+  });
+}
+
+window.removeFromCart = (index) => {
+  cart.splice(index, 1);
+  updateCartUI();
+  populateProduceSelects();
+  updateAvailableStockForForm(cashForm);
+  updateAvailableStockForForm(creditForm);
+};
+
 cashForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const formData = new FormData(cashForm);
-  const data = Object.fromEntries(formData.entries());
-  
-  // Add system fields
+  const data = Object.fromEntries(new FormData(cashForm).entries());
   data.branch = branch;
   data.salesAgent = userName;
   data.saleType = 'cash';
-  
-  // Find selected stock to get type if not in form
-  const stockItem = availableStock.find(s => s.name === data.produceName);
-  if(stockItem) data.produceType = stockItem.type;
 
-  if (!data.produceName || !data.tonnage || !data.amountPaid || !data.buyerName) {
+  const stockItem = selectedStock(data.produceName);
+
+  if (!data.produceName || !data.tonnage || !data.amountPaid || !data.buyerName || !data.date) {
     return showToast("All fields are required", "error");
   }
-
   if (Number(data.tonnage) <= 0) {
     return showToast("Invalid tonnage, it must be greater than 0", "error");
   }
-  
-  // Check stock availability
-  if (stockItem && Number(data.tonnage) > stockItem.totalStock) {
-      return showToast(`Insufficient stock. Only ${stockItem.totalStock}kg available.`, "error");
-  }
-
   if (!isValidAmount(data.amountPaid)) {
-    return showToast(
-      "Invalid amount paid, it must be at least 5 digits long",
-      "error",
-    );
+    return showToast("Amount paid must be at least 5 digits", "error");
   }
-
   if (!alphaNumRegex.test(data.buyerName)) {
-    return showToast(
-      "Invalid buyer name, it has to be at least 2 characters long",
-      "error",
-    );
+    return showToast("Invalid buyer name", "error");
+  }
+  if (!stockItem) {
+    return showToast("Selected produce is not available in stock", "error");
   }
 
-  // Add to Cart
+  const remaining = Number(stockItem.totalStock || 0) - getReservedInCart(data.produceName);
+  if (Number(data.tonnage) > remaining) {
+    return showToast(`Insufficient stock. Only ${remaining}kg available.`, "error");
+  }
+
   addToCart(data);
   cashForm.reset();
-  // Re-populate defaults
-  document.querySelector('#cashSaleForm .agent-name').value = userName;
+  setDefaults();
+  updateAvailableStockForForm(cashForm);
 });
 
-// ===== Add to Cart (Credit) =====
 creditForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const formData = new FormData(creditForm);
-  const data = Object.fromEntries(formData.entries());
-  
+  const data = Object.fromEntries(new FormData(creditForm).entries());
   data.branch = branch;
   data.salesAgent = userName;
   data.saleType = 'credit';
   data.time = new Date().toLocaleTimeString('en-GB', { hour12: false });
-  
-  // Ensure dates are valid
+
+  const stockItem = selectedStock(data.produceName);
+  if (stockItem && !data.produceType) data.produceType = stockItem.type;
+
   const dispatch = new Date(data.dispatchDate || new Date());
   const due = new Date(data.dueDate);
   const today = new Date();
-  today.setHours(0,0,0,0);
+  today.setHours(0, 0, 0, 0);
 
-  // ===== Validation checks =====
-
-  if (
-    !data.buyerName ||
-    !data.nationalId ||
-    !data.location ||
-    !data.contact ||
-    !data.amountDue ||
-    !data.produceName ||
-    !data.tonnage ||
-    !data.dueDate ||
-    !data.dispatchDate
-  ) {
+  if (!data.buyerName || !data.nationalId || !data.location || !data.contact || !data.amountDue || !data.produceName || !data.tonnage || !data.dueDate || !data.dispatchDate) {
     return showToast("All fields are required", "error");
   }
-
   if (!alphaNumRegex.test(data.buyerName)) {
-    return showToast(
-      "Invalid buyer name, it has to be at least 2 characters long",
-      "error",
-    );
+    return showToast("Invalid buyer name", "error");
   }
-
   if (!ninRegex.test(data.nationalId)) {
-    return showToast(
-      "Invalid National ID (NIN), it must be in the format CMXXXXXXXXXXXX or CFXXXXXXXXXXXX",
-      "error",
-    );
+    return showToast("Invalid National ID (NIN)", "error");
   }
-
   if (!alphaNumRegex.test(data.location)) {
-    return showToast(
-      "Invalid location, it has to be at least 2 characters long",
-      "error",
-    );
+    return showToast("Invalid location", "error");
   }
-
   if (!ugPhoneRegex.test(data.contact)) {
-    return showToast(
-      "Invalid phone number, it must be a valid Ugandan phone number",
-      "error",
-    );
+    return showToast("Invalid phone number", "error");
   }
-
+  if (Number(data.tonnage) <= 0) {
+    return showToast("Tonnage must be greater than 0", "error");
+  }
   if (!isValidAmount(data.amountDue)) {
     return showToast("Amount due must be at least 5 digits", "error");
   }
-
   if (due < today) {
     return showToast("Due date cannot be in the past", "error");
   }
-
   if (due <= dispatch) {
     return showToast("Due date must be after the dispatch date", "error");
   }
+  if (!stockItem) {
+    return showToast("Selected produce is not available in stock", "error");
+  }
 
-  // Add to Cart
+  const remaining = Number(stockItem.totalStock || 0) - getReservedInCart(data.produceName);
+  if (Number(data.tonnage) > remaining) {
+    return showToast(`Insufficient stock. Only ${remaining}kg available.`, "error");
+  }
+
   addToCart(data);
   creditForm.reset();
-  // Re-populate defaults
-  document.querySelector('#creditSaleForm .agent-name').value = userName;
+  setDefaults();
+  updateAvailableStockForForm(creditForm);
 });
 
-// ===== Cart Functions =====
-function addToCart(item) {
-    cart.push(item);
-    updateCartUI();
-    showToast("Item added to cart");
-}
-
-function updateCartUI() {
-    const cartSection = document.getElementById('cartSection');
-    const tbody = document.getElementById('cartTableBody');
-    
-    if (cart.length === 0) {
-        cartSection.style.display = 'none';
-        return;
-    }
-    
-    cartSection.style.display = 'block';
-    tbody.innerHTML = '';
-    
-    cart.forEach((item, index) => {
-        const amount = item.amountPaid || item.amountDue;
-        const row = `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 10px;">${item.produceName}</td>
-                <td style="padding: 10px;">${item.tonnage}</td>
-                <td style="padding: 10px;">${Number(amount).toLocaleString()}</td>
-                <td style="padding: 10px;"><button onclick="removeFromCart(${index})" style="color: red; border: none; background: none; cursor: pointer;"><i class="fa-solid fa-trash"></i></button></td>
-            </tr>
-        `;
-        tbody.innerHTML += row;
-    });
-}
-
-window.removeFromCart = (index) => {
-    cart.splice(index, 1);
-    updateCartUI();
-};
-
 async function processCheckout() {
-    if (cart.length === 0) return;
+  if (!cart.length) {
+    showToast("Cart is empty", "error");
+    return;
+  }
 
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    checkoutBtn.disabled = true;
-    checkoutBtn.textContent = "Processing...";
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  checkoutBtn.disabled = true;
+  checkoutBtn.textContent = "Processing...";
 
-    let successCount = 0;
-    const failedItems = [];
+  let successCount = 0;
+  const failedItems = [];
 
-    // Process each item individually (to maintain backend compatibility)
-    for (const item of cart) {
-        try {
-            const endpoint = item.saleType === 'cash' ? '/api/sales/cash' : '/api/sales/credit';
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(item)
-            });
-
-            if (res.ok) {
-                successCount++;
-            } else {
-                failedItems.push(item.produceName);
-            }
-        } catch (err) {
-            failedItems.push(item.produceName);
-        }
+  for (const item of cart) {
+    // Keep backend compatibility by posting each sale item separately.
+    try {
+      const endpoint = item.saleType === 'cash' ? '/api/sales/cash' : '/api/sales/credit';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(item)
+      });
+      if (res.ok) successCount += 1;
+      else failedItems.push(item.produceName);
+    } catch (_err) {
+      failedItems.push(item.produceName);
     }
+  }
 
-    if (successCount > 0) {
-        printBatchReceipt(cart); // Print receipt for all items attempted
-        cart = []; // Clear cart
-        updateCartUI();
-        fetchStock(); // Refresh stock
-        showToast(`Successfully recorded ${successCount} sales.`);
-    }
+  if (successCount > 0) {
+    printBatchReceipt(cart);
+    cart = [];
+    updateCartUI();
+    await fetchStock();
+    showToast(`Successfully recorded ${successCount} sales.`);
+  }
+  if (failedItems.length) {
+    showToast(`Failed to record: ${failedItems.join(', ')}`, 'error');
+  }
 
-    if (failedItems.length > 0) {
-        showToast(`Failed to record: ${failedItems.join(', ')}`, 'error');
-    }
-
-    checkoutBtn.disabled = false;
-    checkoutBtn.textContent = "Complete Sale & Print Receipt";
+  checkoutBtn.disabled = false;
+  checkoutBtn.textContent = "Complete Sale & Print Receipt";
 }
 
 function printBatchReceipt(items) {
-    const branch = localStorage.getItem('branch') || 'N/A';
-    const agent = localStorage.getItem('userName') || 'Sales Agent';
-    const date = new Date().toLocaleDateString('en-GB');
-    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const displayBranch = localStorage.getItem('branch') || 'N/A';
+  const agent = localStorage.getItem('userName') || 'Sales Agent';
+  const date = new Date().toLocaleDateString('en-GB');
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    // Get buyer name from the first item, assuming all items in cart are for the same buyer.
-    const buyerName = items.length > 0 ? items[0].buyerName : 'N/A';
-    
-    let totalAmount = 0;
-    const rows = items.map(item => {
-        const amount = Number(item.amountPaid || item.amountDue || 0);
-        totalAmount += amount;
-        // Using 'KG' for clarity
-        return `<tr>
-                    <td>${item.produceName}</td>
-                    <td>${item.tonnage} KG</td>
-                    <td>${amount.toLocaleString()}</td>
-                </tr>`;
-    }).join('');
+  const buyerName = items[0]?.buyerName || 'N/A';
 
-    // Tax Calculation (Example: 18% VAT)
-    const taxRate = 0.18;
-    const taxAmount = totalAmount * taxRate;
-    const grandTotal = totalAmount + taxAmount;
+  let subtotal = 0;
+  const rows = items.map((item) => {
+    const amount = Number(item.amountPaid || item.amountDue || 0);
+    subtotal += amount;
+    return `<tr><td>${item.produceName}</td><td>${item.tonnage} KG</td><td>${amount.toLocaleString()}</td></tr>`;
+  }).join('');
 
-    const receiptHtml = `
-        <html>
-        <head>
-            <title>Sales Receipt</title>
-            <style>
-                body { 
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                    margin: 0; 
-                    padding: 15px; 
-                    background-color: #f9f9f9;
-                    -webkit-print-color-adjust: exact; /* For Chrome, Safari */
-                    color-adjust: exact; /* Standard */
-                }
-                .receipt-container { 
-                    width: 100%; 
-                    max-width: 450px; 
-                    margin: auto; 
-                    background: #fff; 
-                    padding: 25px; 
-                    border-radius: 8px; 
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-                }
-                .header { 
-                    text-align: center; 
-                    margin-bottom: 20px; 
-                    border-bottom: 2px solid #f0f0f0;
-                    padding-bottom: 15px;
-                }
-                .header img {
-                    max-width: 120px; /* Adjust logo size as needed */
-                    margin-bottom: 10px;
-                }
-                .header h2 { 
-                    margin: 0; 
-                    color: #2c3e50; 
-                    font-size: 24px;
-                }
-                .header p { margin: 2px 0; font-size: 13px; color: #555; }
-                .details, .totals {
-                    margin-top: 20px;
-                    font-size: 14px;
-                }
-                .details p, .totals p {
-                    margin: 6px 0;
-                    display: flex;
-                    justify-content: space-between;
-                }
-                .details p strong, .totals p strong {
-                    color: #333;
-                }
-                table { 
-                    width: 100%; 
-                    border-collapse: collapse; 
-                    margin-top: 20px;
-                }
-                th, td { 
-                    text-align: left; 
-                    padding: 10px; 
-                    border-bottom: 1px solid #eee;
-                    font-size: 14px;
-                }
-                th {
-                    background-color: #f7f7f7;
-                    color: #333;
-                    font-weight: 600;
-                }
-                .totals {
-                    border-top: 2px solid #f0f0f0;
-                    padding-top: 10px;
-                }
-                .totals .grand-total {
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                .footer { 
-                    text-align: center; 
-                    margin-top: 25px; 
-                    font-size: 12px; 
-                    color: #888; 
-                }
-            </style>
-        </head>
-        <body>
-            <div class="receipt-container">
-                <div class="header">
-                    <img src="/images/logo.png" alt="Company Logo">
-                    <h2>Karibu Groceries Ltd</h2>
-                    <p>Your Trusted Partner for Fresh Produce</p>
-                </div>
-                <div class="details">
-                    <p><strong>Date:</strong> <span>${date} ${time}</span></p>
-                    <p><strong>Branch:</strong> <span>${branch}</span></p>
-                    <p><strong>Sold To:</strong> <span>${buyerName}</span></p>
-                    <p><strong>Sales Agent:</strong> <span>${agent}</span></p>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Amount (UGX)</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-                <div class="totals">
-                    <p>Subtotal: <span>UGX ${totalAmount.toLocaleString()}</span></p>
-                    <p>VAT (18%): <span>UGX ${taxAmount.toLocaleString()}</span></p>
-                    <p class="grand-total"><strong>Total:</strong> <span>UGX ${grandTotal.toLocaleString()}</span></p>
-                </div>
-                <div class="footer">
-                    <p>Thank you for your business!</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
+  const vat = subtotal * 0.18;
+  const total = subtotal + vat;
 
-    const win = window.open('', '', 'width=500,height=750');
-    win.document.write(receiptHtml);
-    win.document.close();
-    win.print();
+  const receiptHtml = `<html><head><title>Sales Receipt</title></head><body style="font-family:Segoe UI;padding:15px;background:#f9f9f9;"><div style="max-width:450px;margin:auto;background:#fff;padding:25px;border-radius:8px;"><div style="text-align:center;"><img src="/images/logo.png" style="max-width:120px;" /><h2>Karibu Groceries Ltd</h2></div><p><strong>Date:</strong> ${date} ${time}</p><p><strong>Branch:</strong> ${displayBranch}</p><p><strong>Sold To:</strong> ${buyerName}</p><p><strong>Sales Agent:</strong> ${agent}</p><table style="width:100%;border-collapse:collapse;"><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><p><strong>Subtotal:</strong> UGX ${subtotal.toLocaleString()}</p><p><strong>VAT (18%):</strong> UGX ${vat.toLocaleString()}</p><p><strong>Total:</strong> UGX ${total.toLocaleString()}</p></div></body></html>`;
+
+  const win = window.open('', '', 'width=500,height=750');
+  if (!win) return;
+  win.document.write(receiptHtml);
+  win.document.close();
+  win.print();
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!token) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  setDefaults();
+  fetchStock();
+  updateCartUI();
+
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  // Checkout finalizes all cart rows and then refreshes stock state.
+  if (checkoutBtn) checkoutBtn.addEventListener('click', processCheckout);
+});

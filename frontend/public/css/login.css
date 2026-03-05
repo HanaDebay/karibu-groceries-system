@@ -6,12 +6,38 @@
 }
 
 body {
-  background: url("../images/bg2.jpg") no-repeat center center/cover;
+  background-image: url("../images/bg-login.jpg.png"), url("../images/bg1.jpg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-attachment: fixed;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
+}
+
+.back-link {
+  position: fixed;
+  z-index: 3;
+  top: 18px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+
+.back-link:hover {
+  background: rgba(212, 175, 55, 0.95);
+  color: #1a202c;
 }
 
 body::before {
@@ -95,7 +121,7 @@ body::before {
 }
 
 .account-info strong {
-  color: #00c853;
+  color: #d4af37;
 }
 
 .form-group input:focus {
@@ -113,14 +139,16 @@ body::before {
 
 .form-extra a {
   text-decoration: none;
-  color: #038624;
+  color: #d4af37;
+  font-weight: 700;
 }
 
 .form-extra a:hover {
   text-decoration: underline;
+  color: #2c3e50;
 }
 .btn-login {
-  background: #2f855a;
+  background: #2c3e50;
   color: white;
   border-radius: 12px;
   padding: 16px;
@@ -128,7 +156,8 @@ body::before {
 }
 
 .btn-login:hover {
-  background: #276749;
+  background: #d4af37;
+  color: #1a202c;
 }
 .form-group select {
   width: 100%;
@@ -152,6 +181,17 @@ footer {
 
 /* Responsive */
 @media (max-width: 480px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .back-link {
+    top: 12px;
+    left: 12px;
+    padding: 7px 11px;
+    font-size: 13px;
+  }
+
   .login-card {
     padding: 25px;
   }

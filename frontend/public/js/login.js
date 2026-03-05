@@ -19,6 +19,10 @@ loginForm.addEventListener('submit', async (e) => {
   if (!email || !password) {
     return showToast("Please enter both email and password.", "error");
   }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return showToast("Please enter a valid email address.", "error");
+  }
 
   // Show loading state
   const originalBtnText = btnLogin.innerHTML;

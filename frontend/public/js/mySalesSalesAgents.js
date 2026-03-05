@@ -1,302 +1,297 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-    const userName = localStorage.getItem('userName');
+  const token = localStorage.getItem('token');
+  const userName = localStorage.getItem('userName');
+  const branch = localStorage.getItem('branch');
 
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const branchInfo = document.querySelector('.topbar span');
+  if (branch && branchInfo) {
+    branchInfo.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${branch} Branch`;
+  }
+
+  const cashBtn = document.getElementById('cashBtn');
+  const creditBtn = document.getElementById('creditBtn');
+  const searchInput = document.getElementById('salesSearch');
+
+  let allSales = [];
+  let currentView = 'cash';
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function getOutstanding(sale) {
+    // Current due value after any partial payments.
+    return Number(sale.amountDue ?? sale.amount ?? 0);
+  }
+
+  function getPaid(sale) {
+    return Number(sale.amountPaid ?? 0);
+  }
+
+  function getTotalCredit(sale) {
+    return Number(sale.totalAmount ?? (getOutstanding(sale) + getPaid(sale)));
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentModalBackdrop')?.remove();
+  }
+
+  function openPaymentModal(sale) {
+    // Same payment modal flow as manager screen for feature parity.
+    const outstanding = getOutstanding(sale);
+    if (outstanding <= 0) {
+      showToast('This credit sale is already fully paid.', 'error');
+      return;
     }
 
-    fetchMySales(token, userName);
+    closePaymentModal();
+    const today = new Date().toISOString().split('T')[0];
+    const modal = document.createElement('div');
+    modal.id = 'paymentModalBackdrop';
+    modal.className = 'modal-backdrop';
+    modal.innerHTML = `
+      <div class="payment-modal">
+        <h4>Receive Credit Payment</h4>
+        <p><strong>Buyer:</strong> ${sale.buyerName || '-'}</p>
+        <p><strong>Outstanding:</strong> UGX ${Number(outstanding).toLocaleString()}</p>
 
-    const searchInput = document.getElementById('salesSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            renderSalesTable();
-        });
-    }
+        <div class="modal-group">
+          <label>Amount (UGX)</label>
+          <input id="paymentAmount" type="number" min="1" />
+        </div>
+        <div class="modal-group">
+          <label>Method</label>
+          <select id="paymentMethod">
+            <option value="cash">Cash</option>
+            <option value="mobile-money">Mobile Money</option>
+            <option value="bank-transfer">Bank Transfer</option>
+          </select>
+        </div>
+        <div class="modal-group">
+          <label>Payment Date</label>
+          <input id="paymentDate" type="date" value="${today}" />
+        </div>
+        <div class="modal-group">
+          <label>Note (Optional)</label>
+          <textarea id="paymentNote" rows="2"></textarea>
+        </div>
 
-    // View Toggles
-    const cashBtn = document.getElementById('cashBtn');
-    const creditBtn = document.getElementById('creditBtn');
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="cancelPaymentBtn">Cancel</button>
+          <button type="button" class="btn-submit" id="submitPaymentBtn">Submit Payment</button>
+        </div>
+      </div>
+    `;
 
-    cashBtn.addEventListener('click', () => {
-        currentView = 'cash';
-        cashBtn.classList.add('active');
-        creditBtn.classList.remove('active');
-        renderSalesTable();
+    modal.addEventListener('click', (e) => {
+      if (e.target.id === 'paymentModalBackdrop') closePaymentModal();
     });
 
-    creditBtn.addEventListener('click', () => {
-        currentView = 'credit';
-        creditBtn.classList.add('active');
-        cashBtn.classList.remove('active');
-        renderSalesTable();
+    document.body.appendChild(modal);
+    document.getElementById('cancelPaymentBtn').addEventListener('click', closePaymentModal);
+
+    document.getElementById('submitPaymentBtn').addEventListener('click', async () => {
+      const amount = Number(document.getElementById('paymentAmount').value || 0);
+      const method = document.getElementById('paymentMethod').value;
+      const paidOn = document.getElementById('paymentDate').value;
+      const note = document.getElementById('paymentNote').value.trim();
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        showToast('Payment amount must be greater than 0.', 'error');
+        return;
+      }
+      if (amount > outstanding) {
+        showToast('Payment cannot exceed outstanding amount.', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitPaymentBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      try {
+        const response = await fetch(`/api/sales/credit/${sale._id}/payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ amount, method, paidOn, note })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          showToast(payload.message || 'Failed to receive payment.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Payment';
+          return;
+        }
+
+        closePaymentModal();
+        showToast('Credit payment received successfully.');
+        await fetchMySales();
+      } catch (_err) {
+        showToast('Failed to receive payment.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Payment';
+      }
+    });
+  }
+
+  function applyCreditColumnVisibility() {
+    const isCredit = currentView === 'credit';
+    const dueDateHeader = document.querySelector('#salesTable thead th:nth-child(8)');
+    const paidHeader = document.getElementById('paidHeader');
+    const totalCreditHeader = document.getElementById('totalCreditHeader');
+    const totalPaid = document.getElementById('totalPaid');
+    const totalCredit = document.getElementById('totalCredit');
+    const footerDueDate = document.getElementById('footerDueDate');
+
+    if (dueDateHeader) dueDateHeader.style.display = isCredit ? '' : 'none';
+    if (paidHeader) paidHeader.style.display = isCredit ? '' : 'none';
+    if (totalCreditHeader) totalCreditHeader.style.display = isCredit ? '' : 'none';
+    if (totalPaid) totalPaid.style.display = isCredit ? '' : 'none';
+    if (totalCredit) totalCredit.style.display = isCredit ? '' : 'none';
+    if (footerDueDate) footerDueDate.style.display = isCredit ? '' : 'none';
+  }
+
+  function renderSalesTable() {
+    const tbody = document.querySelector('#salesTable tbody');
+    const term = (searchInput?.value || '').toLowerCase();
+    tbody.innerHTML = '';
+
+    applyCreditColumnVisibility();
+
+    // Filter by active tab + search term before computing totals.
+    const filteredSales = allSales.filter((sale) => {
+      const matchesType = sale.type === currentView;
+      const matchesSearch =
+        String(sale.produceName || '').toLowerCase().includes(term) ||
+        String(sale.buyerName || '').toLowerCase().includes(term) ||
+        String(sale.date || sale.dispatchDate || '').toLowerCase().includes(term);
+      return matchesType && matchesSearch;
     });
 
-    // Event delegation for print buttons
-    const salesTableBody = document.querySelector('#salesTable tbody');
-    if (salesTableBody) {
-        salesTableBody.addEventListener('click', (e) => {
-            const printButton = e.target.closest('.print-btn');
-            if (printButton) {
-                const saleId = printButton.dataset.id;
-                printReceipt(saleId);
-            }
-        });
-    }
-});
-
-let allSales = [];
-let currentView = 'cash';
-
-function printReceipt(saleId) {
-    const sale = allSales.find(s => s._id === saleId);
-    if (!sale) {
-        alert('Sale not found!');
-        return;
+    if (!filteredSales.length) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center">No ${currentView} sales found.</td></tr>`;
+      document.getElementById('totalKg').textContent = '0';
+      document.getElementById('totalAmount').textContent = '0';
+      document.getElementById('totalPaid').textContent = '0';
+      document.getElementById('totalCredit').textContent = '0';
+      return;
     }
 
-    const branch = localStorage.getItem('branch') || 'N/A';
+    let totalKg = 0;
+    let totalOutstanding = 0;
+    let totalPaidAmount = 0;
+    let totalCreditAmount = 0;
+
+    filteredSales.forEach((sale) => {
+      const outstanding = currentView === 'credit' ? getOutstanding(sale) : Number(sale.amountPaid || sale.amount || 0);
+      const paid = getPaid(sale);
+      const creditTotal = getTotalCredit(sale);
+      const dueDateStr = sale.dueDate ? new Date(sale.dueDate).toLocaleDateString('en-GB') : '-';
+
+      totalKg += Number(sale.tonnage || 0);
+      totalOutstanding += Number(outstanding || 0);
+      totalPaidAmount += paid;
+      totalCreditAmount += creditTotal;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${new Date(sale.date || sale.dispatchDate).toLocaleDateString('en-GB')}</td>
+        <td>${sale.produceName || '-'}</td>
+        <td>${Number(sale.tonnage || 0).toLocaleString()}</td>
+        <td>${sale.buyerName || '-'}</td>
+        <td>${Number(outstanding).toLocaleString()}</td>
+        <td style="display:${currentView === 'credit' ? '' : 'none'};">${Number(paid).toLocaleString()}</td>
+        <td style="display:${currentView === 'credit' ? '' : 'none'};">${Number(creditTotal).toLocaleString()}</td>
+        <td style="display:${currentView === 'credit' ? '' : 'none'};">${dueDateStr}</td>
+        <td>
+          <button class="action-btn print-btn" data-id="${sale._id}"><i class="fa-solid fa-print"></i> Print</button>
+          ${currentView === 'credit' && Number(outstanding) > 0 ? '<button class="action-btn pay-btn" type="button">Receive Payment</button>' : ''}
+        </td>
+      `;
+
+      row.querySelector('.print-btn')?.addEventListener('click', () => printReceipt(sale._id));
+      row.querySelector('.pay-btn')?.addEventListener('click', () => openPaymentModal(sale));
+      tbody.appendChild(row);
+    });
+
+    document.getElementById('totalKg').textContent = totalKg.toLocaleString();
+    document.getElementById('totalAmount').textContent = totalOutstanding.toLocaleString();
+    document.getElementById('totalPaid').textContent = totalPaidAmount.toLocaleString();
+    document.getElementById('totalCredit').textContent = totalCreditAmount.toLocaleString();
+  }
+
+  function printReceipt(saleId) {
+    const sale = allSales.find((s) => s._id === saleId);
+    if (!sale) return;
+
     const agent = sale.salesAgent || localStorage.getItem('userName') || 'N/A';
     const saleDate = new Date(sale.date || sale.dispatchDate).toLocaleDateString('en-GB');
     const saleTime = sale.time || new Date(sale.date || sale.dispatchDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     const isCredit = sale.type === 'credit';
-    const amount = Number(sale.amountPaid || sale.amountDue || sale.amount || 0);
-    
-    // Tax Calculation (Example: 18% VAT)
-    const taxRate = 0.18;
-    const taxAmount = amount * taxRate;
+    const amount = Number(isCredit ? getOutstanding(sale) : (sale.amountPaid || sale.amount || 0));
+    const taxAmount = amount * 0.18;
     const grandTotal = amount + taxAmount;
 
-    const rows = `<tr>
-                    <td>${sale.produceName}</td>
-                    <td>${Number(sale.tonnage || 0).toLocaleString()} KG</td>
-                    <td>${amount.toLocaleString()}</td>
-                </tr>`;
+    const rows = `<tr><td>${sale.produceName}</td><td>${Number(sale.tonnage || 0).toLocaleString()} KG</td><td>${amount.toLocaleString()}</td></tr>`;
 
     const receiptHtml = `
-        <html>
-        <head>
-            <title>Sales Receipt</title>
-            <style>
-                body { 
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                    margin: 0; 
-                    padding: 15px; 
-                    background-color: #f9f9f9;
-                    -webkit-print-color-adjust: exact; /* For Chrome, Safari */
-                    color-adjust: exact; /* Standard */
-                }
-                .receipt-container { 
-                    width: 100%; 
-                    max-width: 450px; 
-                    margin: auto; 
-                    background: #fff; 
-                    padding: 25px; 
-                    border-radius: 8px; 
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-                }
-                .header { 
-                    text-align: center; 
-                    margin-bottom: 20px; 
-                    border-bottom: 2px solid #f0f0f0;
-                    padding-bottom: 15px;
-                }
-                .header img {
-                    max-width: 120px; /* Adjust as needed */
-                    margin-bottom: 10px;
-                }
-                .header h2 { 
-                    margin: 0; 
-                    color: #2c3e50; 
-                    font-size: 24px;
-                }
-                .header p { margin: 2px 0; font-size: 13px; color: #555; }
-                .details, .totals {
-                    margin-top: 20px;
-                    font-size: 14px;
-                }
-                .details p, .totals p {
-                    margin: 6px 0;
-                    display: flex;
-                    justify-content: space-between;
-                }
-                .details p strong, .totals p strong {
-                    color: #333;
-                }
-                table { 
-                    width: 100%; 
-                    border-collapse: collapse; 
-                    margin-top: 20px;
-                }
-                th, td { 
-                    text-align: left; 
-                    padding: 10px; 
-                    border-bottom: 1px solid #eee;
-                    font-size: 14px;
-                }
-                th {
-                    background-color: #f7f7f7;
-                    color: #333;
-                    font-weight: 600;
-                }
-                .totals {
-                    border-top: 2px solid #f0f0f0;
-                    padding-top: 10px;
-                }
-                .totals .grand-total {
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                .footer { 
-                    text-align: center; 
-                    margin-top: 25px; 
-                    font-size: 12px; 
-                    color: #888; 
-                }
-            </style>
-        </head>
-        <body>
-            <div class="receipt-container">
-                <div class="header">
-                    <img src="/images/logo.png" alt="Company Logo">
-                    <h2>Karibu Groceries Ltd</h2>
-                    <p>${isCredit ? 'Credit Sale Invoice' : 'Cash Sale Receipt'}</p>
-                </div>
-                <div class="details">
-                    <p><strong>Receipt No:</strong> <span>${sale._id}</span></p>
-                    <p><strong>Date:</strong> <span>${saleDate} ${saleTime}</span></p>
-                    <p><strong>Branch:</strong> <span>${sale.branch || branch}</span></p>
-                    <p><strong>Sold To:</strong> <span>${sale.buyerName}</span></p>
-                    <p><strong>Sales Agent:</strong> <span>${agent}</span></p>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Amount (UGX)</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-                <div class="totals">
-                    <p>Subtotal: <span>UGX ${amount.toLocaleString()}</span></p>
-                    <p>VAT (18%): <span>UGX ${taxAmount.toLocaleString()}</span></p>
-                    <p class="grand-total"><strong>Total:</strong> <span>UGX ${grandTotal.toLocaleString()}</span></p>
-                    ${isCredit ? `<p><strong>Due Date:</strong> <span>${new Date(sale.dueDate).toLocaleDateString('en-GB')}</span></p>` : ''}
-                </div>
-                <div class="footer">
-                    <p>Thank you for your business!</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
+      <html><head><title>Sales Receipt</title></head><body style="font-family:Segoe UI;padding:15px;background:#f9f9f9;"><div style="max-width:450px;margin:auto;background:#fff;padding:25px;border-radius:8px;"><div style="text-align:center;"><img src="/images/logo.png" style="max-width:120px;" /><h2>Karibu Groceries Ltd</h2><p>${isCredit ? 'Credit Sale Invoice' : 'Cash Sale Receipt'}</p></div><p><strong>Receipt No:</strong> ${sale._id}</p><p><strong>Date:</strong> ${saleDate} ${saleTime}</p><p><strong>Branch:</strong> ${sale.branch || branch || 'N/A'}</p><p><strong>Sold To:</strong> ${sale.buyerName}</p><p><strong>Sales Agent:</strong> ${agent}</p><table style="width:100%;border-collapse:collapse;"><thead><tr><th>Item</th><th>Qty</th><th>Amount (UGX)</th></tr></thead><tbody>${rows}</tbody></table><p>Subtotal: UGX ${amount.toLocaleString()}</p><p>VAT (18%): UGX ${taxAmount.toLocaleString()}</p><p><strong>Total: UGX ${grandTotal.toLocaleString()}</strong></p>${isCredit ? `<p><strong>Due Date:</strong> ${new Date(sale.dueDate).toLocaleDateString('en-GB')}</p>` : ''}</div></body></html>`;
 
     const printWindow = window.open('', '_blank', 'width=500,height=750');
+    if (!printWindow) return;
     printWindow.document.write(receiptHtml);
     printWindow.document.close();
     printWindow.print();
-}
+  }
 
-async function fetchMySales(token, userName) {
+  async function fetchMySales() {
     try {
-        const response = await fetch('/api/sales', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+      const response = await fetch('/api/sales', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-        if (response.ok) {
-            const json = await response.json();
-            const data = json.data || [];
+      if (!response.ok) throw new Error('Failed to fetch sales');
 
-            // Filter for logged-in agent (checking both salesAgent and recordedBy fields for compatibility)
-            allSales = data.filter(sale => sale.salesAgent === userName || sale.recordedBy === userName);
-            
-            // Sort by date descending (newest first)
-            allSales.sort((a, b) => {
-                const dateA = new Date(a.date || a.dispatchDate);
-                const dateB = new Date(b.date || b.dispatchDate);
-                return dateB - dateA;
-            });
-
-            renderSalesTable();
-        } else {
-            console.error('Failed to fetch sales');
-            document.querySelector('#salesTable tbody').innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Failed to load sales data.</td></tr>';
-        }
+      const json = await response.json();
+      const data = json.data || [];
+      allSales = data
+        .filter((sale) => sale.salesAgent === userName || sale.recordedBy === userName)
+        .sort((a, b) => new Date(b.date || b.dispatchDate) - new Date(a.date || a.dispatchDate));
+      renderSalesTable();
     } catch (error) {
-        console.error('Error:', error);
+      console.error(error);
+      showToast('Failed to load sales data.', 'error');
     }
-}
+  }
 
-function renderSalesTable() {
-    const tbody = document.querySelector('#salesTable tbody');
-    const totalKgEl = document.getElementById('totalKg');
-    const totalAmountEl = document.getElementById('totalAmount');
-    const searchInput = document.getElementById('salesSearch');
-    const term = searchInput ? searchInput.value.toLowerCase() : '';
-    
-    tbody.innerHTML = '';
+  searchInput?.addEventListener('input', renderSalesTable);
 
-    let totalKg = 0;
-    let totalAmount = 0;
+  cashBtn.addEventListener('click', () => {
+    currentView = 'cash';
+    cashBtn.classList.add('active');
+    creditBtn.classList.remove('active');
+    renderSalesTable();
+  });
 
-    // Filter based on View (Cash/Credit) AND Search Term
-    const filteredSales = allSales.filter(sale => {
-        const matchesType = sale.type === currentView;
-        const matchesSearch = 
-            (sale.produceName && sale.produceName.toLowerCase().includes(term)) ||
-            (sale.buyerName && sale.buyerName.toLowerCase().includes(term)) ||
-            ((sale.date || sale.dispatchDate) && (sale.date || sale.dispatchDate).includes(term));
-        
-        return matchesType && matchesSearch;
-    });
+  creditBtn.addEventListener('click', () => {
+    currentView = 'credit';
+    creditBtn.classList.add('active');
+    cashBtn.classList.remove('active');
+    renderSalesTable();
+  });
 
-    // Toggle Due Date Header (6th column)
-    const dueDateHeader = document.querySelector('#salesTable thead th:nth-child(6)');
-    if (dueDateHeader) {
-        dueDateHeader.style.display = currentView === 'cash' ? 'none' : '';
-    }
-
-    if (filteredSales.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center">No ${currentView} sales found.</td></tr>`;
-        if(totalKgEl) totalKgEl.textContent = '0';
-        if(totalAmountEl) totalAmountEl.textContent = '0';
-        return;
-    }
-
-    filteredSales.forEach(sale => {
-        // Determine amount based on sale type or available fields
-        const amount = Number(sale.amountPaid || sale.amountDue || sale.amount || 0);
-        const tonnage = Number(sale.tonnage || 0);
-        const dateStr = sale.date || sale.dispatchDate;
-        const dueDateStr = sale.dueDate ? new Date(sale.dueDate).toLocaleDateString('en-GB') : '-';
-        const dueDateStyle = currentView === 'cash' ? 'display:none;' : '';
-        
-        totalKg += tonnage;
-        totalAmount += amount;
-
-        const row = `
-            <tr>
-                <td>${new Date(dateStr).toLocaleDateString('en-GB')}</td>
-                <td>${sale.produceName}</td>
-                <td>${tonnage.toLocaleString()}</td>
-                <td>${sale.buyerName}</td>
-                <td>${amount.toLocaleString()}</td>
-                <td style="${dueDateStyle}">${dueDateStr}</td>
-                <td>
-                    <button class="action-btn print-btn" data-id="${sale._id}" style="padding: 5px 10px; background: #2c3e50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        <i class="fa-solid fa-print"></i> Print
-                    </button>
-                </td>
-            </tr>
-        `;
-        tbody.innerHTML += row;
-    });
-
-    if(totalKgEl) totalKgEl.textContent = totalKg.toLocaleString();
-    if(totalAmountEl) totalAmountEl.textContent = totalAmount.toLocaleString();
-}
+  fetchMySales();
+});

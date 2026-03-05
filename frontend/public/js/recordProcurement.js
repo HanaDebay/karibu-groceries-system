@@ -39,6 +39,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const branchInput = document.getElementById("branch");
   const topbarBranch = document.querySelector(".topbar span");
   const procureForm = document.getElementById("procureForm");
+  const tonnageInput = document.getElementById("tonnage");
+  const costInput = document.getElementById("cost");
+  const costPerKgInput = document.getElementById("costPerKg");
+
+  function updateCostPerKg() {
+    // Display-only helper: keeps per-KG cost visible while user types.
+    const tonnage = Number(tonnageInput?.value || 0);
+    const cost = Number(costInput?.value || 0);
+    if (!costPerKgInput) return;
+    if (!tonnage || !cost) {
+      costPerKgInput.value = "";
+      return;
+    }
+    costPerKgInput.value = (cost / tonnage).toFixed(2);
+  }
+
+  if (tonnageInput) tonnageInput.addEventListener("input", updateCostPerKg);
+  if (costInput) costInput.addEventListener("input", updateCostPerKg);
 
   try {
     const branch = localStorage.getItem("branch");
@@ -65,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData(procureForm);
     const formProps = Object.fromEntries(formData.entries());
 
-    // Map frontend form names to backend model names
+    // Map frontend form names to backend model names and keep legacy field compatibility.
     const data = {
       produceName: formProps.name,
       produceType: formProps.type,
@@ -74,13 +92,15 @@ document.addEventListener("DOMContentLoaded", () => {
       cost: formProps.cost,
       dealerName: formProps.dealer,
       contact: formProps.contact,
-      sellingPrice: formProps.sellingPrice,
+      sellingPricePerKg: formProps.sellingPricePerKg,
+      sellingPrice: formProps.sellingPricePerKg,
+      costPerKg: Number(formProps.tonnage || 0) > 0 ? Number(formProps.cost || 0) / Number(formProps.tonnage || 1) : 0,
       branch: formProps.branch, // This is from the readonly input
       time: formProps.time,
     };
 
     // --- Validation based on business rules ---
-    if (!data.produceName || !data.produceType || !data.date || !data.tonnage || !data.cost || !data.dealerName || !data.contact || !data.sellingPrice) {
+    if (!data.produceName || !data.produceType || !data.date || !data.tonnage || !data.cost || !data.dealerName || !data.contact || !data.sellingPricePerKg) {
       return showToast("All fields are required.", "error");
     }
     if (!alphaNumRegex.test(data.produceName)) {
@@ -92,8 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (parseInt(data.tonnage, 10) < 1000) {
       return showToast("Tonnage must be at least 1000 KG.", "error");
     }
-    if (data.cost.length < 5 || isNaN(data.cost)) {
-      return showToast("Cost must be a number of at least 5 digits.", "error");
+    if (String(data.cost).length < 5 || isNaN(data.cost)) {
+      return showToast("Total cost must be a number of at least 5 digits.", "error");
     }
     if (!alphaNumRegex.test(data.dealerName)) {
       return showToast("Invalid dealer name (alphanumeric, >= 2 chars).", "error");
@@ -101,8 +121,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ugPhoneRegex.test(data.contact)) {
       return showToast("Please use a valid Ugandan phone number.", "error");
     }
-    if (isNaN(data.sellingPrice) || parseInt(data.sellingPrice) <= 0) {
-      return showToast("Please enter a valid selling price.", "error");
+    if (isNaN(data.sellingPricePerKg) || parseInt(data.sellingPricePerKg, 10) <= 0) {
+      return showToast("Please enter a valid selling price per KG.", "error");
+    }
+    if (Number(data.sellingPricePerKg) < Number(data.costPerKg || 0)) {
+      return showToast("Selling price per KG should be at least cost per KG.", "error");
     }
 
     // --- Backend Integration ---
@@ -123,8 +146,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       showToast("Produce procured successfully!");
       procureForm.reset();
-      // Repopulate readonly branch field after form reset
+      // Repopulate readonly/computed fields after form reset.
       branchInput.value = localStorage.getItem("branch");
+      updateCostPerKg();
       fetchAndDisplayProcurements(); // Refresh the list
 
     } catch (error) {
@@ -209,7 +233,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const responseData = await response.json();
-      const procurements = responseData.data || []; // The backend wraps the array in a 'data' property
+      // Backend response shape: { success, data, message }
+      const procurements = responseData.data || [];
 
       if (!procurements || procurements.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="8">No procurements found for this branch.</td></tr>';

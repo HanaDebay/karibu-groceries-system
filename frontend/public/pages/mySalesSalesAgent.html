@@ -12,6 +12,7 @@
     />
 
     <!-- CSS -->
+    <link rel="stylesheet" href="../css/responsive-utilities.css" />
     <link rel="stylesheet" href="../css/mySalesSalesAgent.css" />
   </head>
 
@@ -44,7 +45,9 @@
               <th>Produce</th>
               <th>KG Sold</th>
               <th>Buyer</th>
-              <th>Amount (UGX)</th>
+              <th>Outstanding (UGX)</th>
+              <th id="paidHeader" style="display:none;">Paid (UGX)</th>
+              <th id="totalCreditHeader" style="display:none;">Total Credit (UGX)</th>
               <th>Due Date</th>
               <th>Action</th>
             </tr>
@@ -58,11 +61,16 @@
               <th id="totalKg">0</th>
               <th></th>
               <th id="totalAmount">0</th>
+              <th id="totalPaid" style="display:none;">0</th>
+              <th id="totalCredit" style="display:none;">0</th>
+              <th id="footerDueDate" style="display:none;"></th>
             </tr>
           </tfoot>
         </table>
       </section>
     </main>
+
+    <div id="toast" class="toast"></div>
 
     <!-- JS -->
     <script src="../js/mySalesSalesAgents.js"></script>
