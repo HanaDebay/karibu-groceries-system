@@ -80,7 +80,8 @@ exports.getDirectorSummary = async (req, res) => {
             {
                 $group: {
                     _id: "$branch",
-                    creditRevenue: { $sum: "$amountDue" }
+                    creditOutstanding: { $sum: "$amountDue" },
+                    creditTotal: { $sum: { $ifNull: ["$totalAmount", { $add: ["$amountDue", "$amountPaid"] }] } }
                 }
             }
         ]);
@@ -91,7 +92,8 @@ exports.getDirectorSummary = async (req, res) => {
             branchMap.set(item._id, {
                 branch: item._id,
                 cashRevenue: Number(item.cashRevenue || 0),
-                creditRevenue: 0
+                creditOutstanding: 0,
+                creditTotal: 0
             });
         });
 
@@ -99,21 +101,24 @@ exports.getDirectorSummary = async (req, res) => {
             const existing = branchMap.get(item._id) || {
                 branch: item._id,
                 cashRevenue: 0,
-                creditRevenue: 0
+                creditOutstanding: 0,
+                creditTotal: 0
             };
-            existing.creditRevenue = Number(item.creditRevenue || 0);
+            existing.creditOutstanding = Number(item.creditOutstanding || 0);
+            existing.creditTotal = Number(item.creditTotal || 0);
             branchMap.set(item._id, existing);
         });
 
         const salesByBranch = Array.from(branchMap.values())
             .map(item => ({
-                ...item,
-                totalRevenue: Number(item.cashRevenue || 0) + Number(item.creditRevenue || 0)
+                branch: item.branch,
+                totalRevenue: Number(item.cashRevenue || 0) + Number(item.creditTotal || 0),
+                creditOutstanding: item.creditOutstanding
             }))
             .sort((a, b) => a.branch.localeCompare(b.branch));
 
         const totalSales = salesByBranch.reduce((sum, item) => sum + Number(item.totalRevenue || 0), 0);
-        const creditOutstanding = salesByBranch.reduce((sum, item) => sum + Number(item.creditRevenue || 0), 0);
+        const creditOutstanding = salesByBranch.reduce((sum, item) => sum + Number(item.creditOutstanding || 0), 0);
 
         success(res, { salesByBranch, totalSales, creditOutstanding }, "Director summary fetched successfully");
     } catch (err) {
@@ -137,21 +142,34 @@ exports.getDirectorSalesOverview = async (req, res) => {
             quantity: s.tonnage,
             amount: s.amountPaid,
             date: s.date,
-            status: "Paid"
+            status: "Paid",
+            dueDate: null
         }));
 
-        const formattedCredit = creditSales.map(s => ({
-            id: s._id,
-            produce: s.produceName,
-            type: s.produceType || "N/A",
-            branch: s.branch,
-            agent: s.recordedBy,
-            saleType: "Credit",
-            quantity: s.tonnage,
-            amount: s.amountDue,
-            date: s.dispatchDate,
-            status: Number(s.amountDue) > 0 ? "Pending" : "Paid"
-        }));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const formattedCredit = creditSales.map(s => {
+            let status = Number(s.amountDue) > 0 ? "Pending" : "Paid";
+            if (status === "Pending" && s.dueDate) {
+                const due = new Date(s.dueDate);
+                due.setHours(0, 0, 0, 0);
+                if (due < today) status = "Overdue";
+            }
+            return {
+                id: s._id,
+                produce: s.produceName,
+                type: s.produceType || "N/A",
+                branch: s.branch,
+                agent: s.recordedBy,
+                saleType: "Credit",
+                quantity: s.tonnage,
+                amount: s.totalAmount || (Number(s.amountDue || 0) + Number(s.amountPaid || 0)),
+                date: s.dispatchDate,
+                status: status,
+                dueDate: s.dueDate
+            };
+        });
 
         const allSales = [...formattedCash, ...formattedCredit]
             .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -217,7 +235,7 @@ exports.getSales = async (req, res) => {
                 amountPaid: totals.amountPaid,
                 totalAmount: totals.totalAmount,
                 paymentStatus: s.paymentStatus || totals.status,
-                amount: totals.amountDue
+                amount: totals.totalAmount
             });
         });
 

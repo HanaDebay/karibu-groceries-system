@@ -23,13 +23,15 @@
         <div class="form-group"><label>Branch</label><input :value="auth.branch || ''" type="text" readonly /></div>
         <div class="form-group"><label>Contact</label><input v-model.trim="form.contact" type="tel" /></div>
         <div class="form-group"><label>Selling Price Per KG (UGX)</label><input v-model.number="form.sellingPricePerKg" type="number" min="1" /></div>
-        <div class="form-group"><label>Cost Per KG (UGX)</label><input :value="costPerKgDisplay" type="text" readonly /></div>
         <button class="submit-btn" type="submit">Add Produce</button>
       </form>
 
       <div v-else class="table-container">
         <div class="search-row">
+          <input v-model="startDate" type="date" placeholder="From" aria-label="From Date" @change="onSearchInput" />
+          <input v-model="endDate" type="date" placeholder="To" aria-label="To Date" @change="onSearchInput" />
           <input v-model.trim="searchText" type="search" placeholder="Search produce, dealer..." @input="onSearchInput" />
+          <button class="reset-btn" type="button" @click="resetFilters">Reset</button>
           <button class="submit-btn" type="button" @click="printReport">Print Report</button>
         </div>
         <div class="table-scroll">
@@ -79,6 +81,8 @@ const branchLabel = computed(() => `${auth.branch || 'Branch'} Branch`)
 
 const activeTab = ref('add')
 const searchText = ref('')
+const startDate = ref('')
+const endDate = ref('')
 const loading = ref(false)
 const rows = ref([])
 let searchTimeout = null
@@ -100,12 +104,6 @@ const toast = reactive({ show: false, message: '', type: 'success' })
 const alphaNumRegex = /^[a-zA-Z0-9 ]{2,}$/
 const alphaRegex = /^[a-zA-Z ]{2,}$/
 const ugPhoneRegex = /^(?:\+256|0)7\d{8}$/
-const costPerKgDisplay = computed(() => {
-  const tonnage = Number(form.tonnage || 0)
-  const cost = Number(form.cost || 0)
-  if (!tonnage || !cost) return ''
-  return (cost / tonnage).toFixed(2)
-})
 
 function showToast(message, type = 'success') {
   toast.show = true
@@ -121,6 +119,13 @@ function formatDate(value) {
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return '-'
   return d.toLocaleDateString()
+}
+
+function resetFilters() {
+  startDate.value = ''
+  endDate.value = ''
+  searchText.value = ''
+  fetchProcurements()
 }
 
 function resetForm() {
@@ -139,7 +144,7 @@ async function submitProcurement() {
   const tonnage = Number(form.tonnage || 0)
   const cost = Number(form.cost || 0)
   const sellingPricePerKg = Number(form.sellingPricePerKg || 0)
-  const costPerKg = tonnage > 0 ? cost / tonnage : 0
+  const costPerKg = tonnage > 0 ? Math.round(cost / tonnage) : 0
 
   const data = {
     produceName: form.name,
@@ -167,7 +172,6 @@ async function submitProcurement() {
   if (!alphaNumRegex.test(data.dealerName)) return showToast('Invalid dealer name (alphanumeric, >= 2 chars).', 'error')
   if (!ugPhoneRegex.test(data.contact)) return showToast('Please use a valid Ugandan phone number.', 'error')
   if (Number.isNaN(Number(data.sellingPricePerKg)) || Number(data.sellingPricePerKg) <= 0) return showToast('Please enter a valid selling price per KG.', 'error')
-  if (data.sellingPricePerKg < costPerKg) return showToast('Selling price per KG should be at least cost per KG.', 'error')
 
   const res = await apiFetch('/api/procurement/add', {
     method: 'POST',
@@ -187,11 +191,14 @@ async function submitProcurement() {
 
 async function fetchProcurements(searchTerm = '') {
   loading.value = true
-  let url = '/api/procurement?'
-  if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}`
-  else url += 'limit=10'
+  let url = '/api/procurement'
+  const params = new URLSearchParams()
+  if (searchTerm) params.append('search', searchTerm)
+  if (startDate.value) params.append('startDate', startDate.value)
+  if (endDate.value) params.append('endDate', endDate.value)
+  if (!searchTerm && !startDate.value && !endDate.value) params.append('limit', '5')
 
-  const res = await apiFetch(url, {
+  const res = await apiFetch(`${url}?${params.toString()}`, {
     headers: { Authorization: `Bearer ${auth.token}` }
   })
   if (!res.ok) {
@@ -216,7 +223,12 @@ function onSearchInput() {
 }
 
 async function printReport() {
-  const url = searchText.value ? `/api/procurement?search=${encodeURIComponent(searchText.value)}` : '/api/procurement'
+  const params = new URLSearchParams()
+  if (searchText.value) params.append('search', searchText.value)
+  if (startDate.value) params.append('startDate', startDate.value)
+  if (endDate.value) params.append('endDate', endDate.value)
+
+  const url = `/api/procurement?${params.toString()}`
   const res = await apiFetch(url, {
     headers: { Authorization: `Bearer ${auth.token}` }
   })
@@ -262,6 +274,7 @@ async function printReport() {
 .table-container { background: #fff; padding: 8px; border-radius: 10px; }
 .search-row { display: flex; gap: 10px; margin-bottom: 12px; }
 .search-row input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; }
+.reset-btn { background: #7f8c8d; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
 .table-scroll { overflow-x: auto; }
 .stock-table { width: 100%; border-collapse: collapse; }
 .stock-table thead { background: #2c3e50; color: #d4af37; }

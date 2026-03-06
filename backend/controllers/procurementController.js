@@ -19,9 +19,23 @@ exports.getAllProcurements = async (req, res) => {
             ];
         }
 
+        if (req.query.startDate || req.query.endDate) {
+            query.date = {};
+            if (req.query.startDate) {
+                const start = new Date(req.query.startDate);
+                start.setHours(0, 0, 0, 0);
+                query.date.$gte = start;
+            }
+            if (req.query.endDate) {
+                const end = new Date(req.query.endDate);
+                end.setHours(23, 59, 59, 999);
+                query.date.$lte = end;
+            }
+        }
+
         let apiQuery = Procurement.find(query).sort({ date: -1 });
 
-        if (req.query.limit && !req.query.search) {
+        if (req.query.limit && !req.query.search && !req.query.startDate && !req.query.endDate) {
             apiQuery = apiQuery.limit(parseInt(req.query.limit, 10));
         }
 
@@ -32,10 +46,10 @@ exports.getAllProcurements = async (req, res) => {
     }
 };
 
-// NEW LOGIC: Get Low Stock Items (Threshold < 500kg)
+// NEW LOGIC: Get Low Stock Items (Threshold < 1000kg)
 exports.getLowStock = async (req, res) => {
     try {
-        let query = { stock: { $lt: 500 } }; // Threshold for "Low Stock"
+        let query = { stock: { $lt: 1000 } }; // Threshold for "Low Stock"
         if (req.user.role !== 'Director') {
             query.branch = req.user.branch;
         }
@@ -56,7 +70,7 @@ exports.addProcurement = async (req, res) => {
 
         payload.sellingPricePerKg = sellingPricePerKg;
         payload.sellingPrice = sellingPricePerKg;
-        payload.costPerKg = tonnage > 0 ? cost / tonnage : 0;
+        payload.costPerKg = tonnage > 0 ? Math.round(cost / tonnage) : 0;
 
         // This logic creates a new procurement record for every transaction,
         // preserving historical data for reporting, such as dealer information.
@@ -108,7 +122,7 @@ exports.updateProcurement = async (req, res) => {
         if (Object.prototype.hasOwnProperty.call(updates, 'cost') || Object.prototype.hasOwnProperty.call(updates, 'tonnage')) {
             const effectiveCost = Number((updates.cost ?? procurement.cost) || 0);
             const effectiveTonnage = Number((updates.tonnage ?? procurement.tonnage) || 0);
-            updates.costPerKg = effectiveTonnage > 0 ? effectiveCost / effectiveTonnage : 0;
+            updates.costPerKg = effectiveTonnage > 0 ? Math.round(effectiveCost / effectiveTonnage) : 0;
         }
 
         Object.assign(procurement, updates);

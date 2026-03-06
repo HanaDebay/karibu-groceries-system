@@ -45,7 +45,7 @@
               <td><span class="badge active">Active</span></td>
               <td>
                 <button type="button" class="btn secondary" @click="openUpdateUserModal(user)">Key</button>
-                <button type="button" class="btn delete" @click="deleteUser(user._id)">Delete</button>
+                <button type="button" class="btn delete" @click="openDeleteUserModal(user)">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -80,10 +80,11 @@
             <tr v-for="branch in filteredBranches" :key="branch._id">
               <td>{{ branch.name }}</td>
               <td>{{ branch.location }}</td>
-              <td>{{ branch.manager || '-' }}</td>
+              <td>{{ getManagerName(branch.name) }}</td>
               <td><span class="badge active">Active</span></td>
               <td>
-                <button type="button" class="btn delete" @click="deleteBranch(branch._id)">Delete</button>
+                <button type="button" class="btn edit" @click="openUpdateBranchModal(branch)">Edit</button>
+                <button type="button" class="btn delete" @click="openDeleteBranchModal(branch)">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -156,6 +157,29 @@
     </div>
   </div>
 
+  <div v-if="showUpdateBranchModal" class="modal open">
+    <div class="modal-content">
+      <header>
+        <h3>Update Branch Details</h3>
+        <button type="button" class="modal-close" @click="showUpdateBranchModal = false">x</button>
+      </header>
+      <form @submit.prevent="updateBranch">
+        <div class="form-group">
+          <label>Branch Name</label>
+          <input v-model.trim="updateBranchForm.name" type="text" required placeholder="e.g. Matugga" />
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input v-model.trim="updateBranchForm.location" type="text" required placeholder="e.g. Matugga Town" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" @click="showUpdateBranchModal = false">Cancel</button>
+          <button type="submit" class="btn primary">Update Branch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div v-if="showUpdateUserModal" class="modal open">
     <div class="modal-content">
       <header>
@@ -176,6 +200,34 @@
           <button type="submit" class="btn primary">Update User</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div v-if="showDeleteUserModal" class="modal open">
+    <div class="modal-content">
+      <header>
+        <h3>Confirm User Deletion</h3>
+        <button type="button" class="modal-close" @click="showDeleteUserModal = false">x</button>
+      </header>
+      <p>Are you sure you want to delete user <strong>{{ userToDeleteName }}</strong>? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" @click="showDeleteUserModal = false">Cancel</button>
+        <button type="button" class="btn delete" @click="confirmDeleteUser">Delete User</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showDeleteBranchModal" class="modal open">
+    <div class="modal-content">
+      <header>
+        <h3>Confirm Branch Deletion</h3>
+        <button type="button" class="modal-close" @click="showDeleteBranchModal = false">x</button>
+      </header>
+      <p>Are you sure you want to delete branch <strong>{{ branchToDeleteName }}</strong>? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" @click="showDeleteBranchModal = false">Cancel</button>
+        <button type="button" class="btn delete" @click="confirmDeleteBranch">Delete Branch</button>
+      </div>
     </div>
   </div>
 
@@ -200,6 +252,12 @@ const selectedUserId = ref('')
 const showUserModal = ref(false)
 const showBranchModal = ref(false)
 const showUpdateUserModal = ref(false)
+const showUpdateBranchModal = ref(false)
+const showDeleteUserModal = ref(false)
+const userToDeleteName = ref('')
+const showDeleteBranchModal = ref(false)
+const branchToDeleteId = ref('')
+const branchToDeleteName = ref('')
 
 const userForm = reactive({
   fullName: '',
@@ -210,6 +268,12 @@ const userForm = reactive({
 })
 
 const branchForm = reactive({
+  name: '',
+  location: ''
+})
+
+const updateBranchForm = reactive({
+  id: '',
   name: '',
   location: ''
 })
@@ -247,7 +311,7 @@ const filteredUsers = computed(() => {
 const filteredBranches = computed(() => {
   const query = branchSearchText.value.toLowerCase()
   return branches.value.filter((branch) =>
-    [branch.name, branch.location, branch.manager]
+    [branch.name, branch.location, getManagerName(branch.name)]
       .map((value) => String(value || '').toLowerCase())
       .join(' ')
       .includes(query)
@@ -295,11 +359,35 @@ function openBranchModal() {
   showBranchModal.value = true
 }
 
+function openUpdateBranchModal(branch) {
+  updateBranchForm.id = branch._id
+  updateBranchForm.name = branch.name
+  updateBranchForm.location = branch.location
+  showUpdateBranchModal.value = true
+}
+
+function getManagerName(branchName) {
+  const m = users.value.find((u) => u.branch === branchName && u.role === 'Manager')
+  return m ? m.fullName : '-'
+}
+
 function openUpdateUserModal(user) {
   selectedUserId.value = user?._id || ''
   updateUserForm.email = user?.email || ''
   updateUserForm.password = ''
   showUpdateUserModal.value = true
+}
+
+function openDeleteUserModal(user) {
+  selectedUserId.value = user._id
+  userToDeleteName.value = user.fullName
+  showDeleteUserModal.value = true
+}
+
+function openDeleteBranchModal(branch) {
+  branchToDeleteId.value = branch._id
+  branchToDeleteName.value = branch.name
+  showDeleteBranchModal.value = true
 }
 
 async function addUser() {
@@ -358,6 +446,32 @@ async function updateUser() {
   await fetchData()
 }
 
+async function updateBranch() {
+  if (!updateBranchForm.id) {
+    showToast('No branch selected', 'error')
+    return
+  }
+  const payload = {
+    name: updateBranchForm.name,
+    location: updateBranchForm.location
+  }
+
+  const res = await apiFetch(`/api/branches/${updateBranchForm.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload)
+  })
+
+  if (!res.ok) {
+    showToast(res.data?.message || 'Failed to update branch', 'error')
+    return
+  }
+
+  showToast('Branch updated successfully')
+  showUpdateBranchModal.value = false
+  await fetchData()
+}
+
 async function addBranch() {
   const payload = {
     name: branchForm.name,
@@ -380,9 +494,8 @@ async function addBranch() {
   await fetchData()
 }
 
-async function deleteUser(id) {
-  if (!window.confirm('Are you sure?')) return
-  const res = await apiFetch(`/api/users/${id}`, {
+async function confirmDeleteUser() {
+  const res = await apiFetch(`/api/users/${selectedUserId.value}`, {
     method: 'DELETE',
     headers: authHeaders()
   })
@@ -390,12 +503,20 @@ async function deleteUser(id) {
     showToast(res.data?.message || 'Error deleting user', 'error')
     return
   }
-  showToast('User deleted')
+  showToast('User deleted successfully')
+  showDeleteUserModal.value = false
   await fetchData()
 }
 
-function deleteBranch() {
-  showToast('Delete functionality requires backend endpoint', 'error')
+async function confirmDeleteBranch() {
+  const res = await apiFetch(`/api/branches/${branchToDeleteId.value}`, { method: 'DELETE', headers: authHeaders() })
+  if (res.ok) {
+    showToast('Branch deleted successfully')
+    await fetchData()
+  } else {
+    showToast(res.data?.message || 'Error deleting branch', 'error')
+  }
+  showDeleteBranchModal.value = false
 }
 
 onMounted(fetchData)
@@ -480,6 +601,12 @@ onMounted(fetchData)
 .btn.secondary {
   background: #95a5a6;
   color: #fff;
+}
+
+.btn.edit {
+  background: #3498db;
+  color: #fff;
+  margin-right: 5px;
 }
 
 .btn.delete {

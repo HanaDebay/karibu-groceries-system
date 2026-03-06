@@ -12,7 +12,10 @@
       </div>
 
       <section class="search-row">
-        <input v-model.trim="searchText" type="search" placeholder="Search by produce, buyer, or date..." />
+        <input v-model="startDate" type="date" placeholder="From" aria-label="From Date" />
+        <input v-model="endDate" type="date" placeholder="To" aria-label="To Date" />
+        <input v-model.trim="searchText" type="search" placeholder="Search by produce, buyer..." />
+        <button class="reset-btn" type="button" @click="resetFilters">Reset</button>
       </section>
 
       <div class="table-scroll">
@@ -26,13 +29,14 @@
               <th>Outstanding (UGX)</th>
               <th v-show="currentView === 'credit'">Paid (UGX)</th>
               <th v-show="currentView === 'credit'">Total Credit (UGX)</th>
+              <th v-show="currentView === 'credit'">Status</th>
               <th v-show="currentView === 'credit'">Due Date</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="!filteredSales.length">
-              <td colspan="10" style="text-align:center;">No {{ currentView }} sales found.</td>
+              <td :colspan="numColumns" style="text-align:center;">No {{ currentView }} sales found.</td>
             </tr>
             <tr v-for="sale in filteredSales" :key="sale._id">
               <td>{{ formatDate(sale.date || sale.dispatchDate) }}</td>
@@ -42,6 +46,9 @@
               <td>{{ Number(getAmount(sale)).toLocaleString() }}</td>
               <td v-show="currentView === 'credit'">{{ Number(getPaidAmount(sale)).toLocaleString() }}</td>
               <td v-show="currentView === 'credit'">{{ Number(getTotalCredit(sale)).toLocaleString() }}</td>
+              <td v-show="currentView === 'credit'">
+                <span :class="['badge', getStatusClass(sale)]">{{ getStatusLabel(sale) }}</span>
+              </td>
               <td v-show="currentView === 'credit'">{{ sale.dueDate ? formatDate(sale.dueDate) : '-' }}</td>
               <td>
                 <button class="print-btn" type="button" @click="printReceipt(sale)">Print</button>
@@ -57,6 +64,7 @@
               <th>{{ totalAmount.toLocaleString() }}</th>
               <th v-show="currentView === 'credit'">{{ totalPaidAmount.toLocaleString() }}</th>
               <th v-show="currentView === 'credit'">{{ totalCreditAmount.toLocaleString() }}</th>
+              <th v-show="currentView === 'credit'"></th>
               <th v-show="currentView === 'credit'"></th>
               <th></th>
             </tr>
@@ -114,6 +122,8 @@ const auth = useAuthStore()
 const allSales = ref([])
 const currentView = ref('cash')
 const searchText = ref('')
+const startDate = ref('')
+const endDate = ref('')
 const toast = reactive({ show: false, message: '', type: 'success' })
 const paymentModal = reactive({
   show: false,
@@ -142,6 +152,31 @@ function getTotalCredit(sale) {
   return sale.totalAmount || Number(getAmount(sale)) + Number(getPaidAmount(sale))
 }
 
+function getStatusLabel(sale) {
+  const due = Number(getAmount(sale) || 0)
+  const paid = Number(getPaidAmount(sale) || 0)
+  if (due <= 0) return 'Paid'
+  
+  if (sale.dueDate) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dueD = new Date(sale.dueDate)
+    dueD.setHours(0, 0, 0, 0)
+    if (dueD < today) return 'Overdue'
+  }
+
+  if (paid > 0) return 'Partially Paid'
+  return 'Pending'
+}
+
+function getStatusClass(sale) {
+  const status = getStatusLabel(sale)
+  if (status === 'Paid') return 'success'
+  if (status === 'Overdue') return 'danger'
+  if (status === 'Partially Paid') return 'warning'
+  return 'warning'
+}
+
 function showToast(message, type = 'success') {
   toast.show = true
   toast.message = message
@@ -157,15 +192,48 @@ function formatDate(value) {
   return date.toLocaleDateString('en-GB')
 }
 
+function resetFilters() {
+  startDate.value = ''
+  endDate.value = ''
+  searchText.value = ''
+}
+
+const numColumns = computed(() => (currentView.value === 'credit' ? 10 : 6))
+
 const filteredSales = computed(() => {
   const term = searchText.value.toLowerCase()
+  const start = startDate.value ? new Date(startDate.value) : null
+  const end = endDate.value ? new Date(endDate.value) : null
+
+  if (start) start.setHours(0, 0, 0, 0)
+  if (end) end.setHours(23, 59, 59, 999)
+
   return allSales.value.filter((sale) => {
     const matchesType = sale.type === currentView.value
     const matchesSearch =
       String(sale.produceName || '').toLowerCase().includes(term) ||
-      String(sale.buyerName || '').toLowerCase().includes(term) ||
-      String(sale.date || sale.dispatchDate || '').toLowerCase().includes(term)
-    return matchesType && matchesSearch
+      String(sale.buyerName || '').toLowerCase().includes(term)
+    
+    let dateOk = true
+    if (start || end) {
+      const saleDateStr = sale.date || sale.dispatchDate
+      const saleDate = saleDateStr ? new Date(saleDateStr) : null
+      
+      let transactionDateOk = false
+      if (saleDate) {
+        transactionDateOk = (!start || saleDate >= start) && (!end || saleDate <= end)
+      }
+
+      let dueDateOk = false
+      if (currentView.value === 'credit' && sale.dueDate) {
+        const dDate = new Date(sale.dueDate)
+        dueDateOk = (!start || dDate >= start) && (!end || dDate <= end)
+      }
+
+      dateOk = currentView.value === 'credit' ? (transactionDateOk || dueDateOk) : transactionDateOk
+    }
+
+    return matchesType && matchesSearch && dateOk
   })
 })
 
@@ -261,8 +329,8 @@ fetchMySales()
 <style scoped>
 .main { padding: 20px; }
 .topbar { background: #fff; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; margin-bottom: 20px; }
-.search-row { display: flex; justify-content: flex-end; margin-bottom: 12px; }
-.search-row input { padding: 8px 10px; border-radius: 6px; border: 1px solid #ddd; width: 300px; }
+.search-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.search-row input { flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid #ddd; min-width: 150px; }
 .table-container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,.08); overflow-x: auto; }
 .report-controls { display: flex; justify-content: flex-start; margin-bottom: 20px; gap: 10px; }
 .report-controls button { background: #2c3e50; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
@@ -273,6 +341,11 @@ fetchMySales()
 .stock-table th, .stock-table td { padding: 14px; text-align: left; }
 .stock-table tbody tr:nth-child(even) { background: #f9fafb; }
 tfoot { background: #f4f6f8; font-weight: bold; }
+.reset-btn { background: #7f8c8d; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge.success { background: #d1fae5; color: #065f46; }
+.badge.warning { background: #fef3c7; color: #92400e; }
+.badge.danger { background: #fee2e2; color: #991b1b; }
 .print-btn { padding: 5px 10px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
 .pay-btn { margin-left: 6px; padding: 5px 10px; background: #d4af37; color: #2c3e50; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
 .pay-btn:hover { background: #2c3e50; color: #fff; }

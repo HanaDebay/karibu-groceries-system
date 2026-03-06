@@ -7,7 +7,10 @@
 
     <section class="table-container">
       <div class="search-row">
+        <input v-model="startDate" type="date" placeholder="From" @change="onSearchInput" />
+        <input v-model="endDate" type="date" placeholder="To" @change="onSearchInput" />
         <input v-model.trim="searchText" type="search" placeholder="Search produce, type or branch..." @input="onSearchInput" />
+        <button class="btn reset" type="button" @click="resetFilters">Reset</button>
         <button class="btn print" type="button" @click="printReport">Print Report</button>
       </div>
 
@@ -15,6 +18,7 @@
         <table class="stock-table">
           <thead>
             <tr>
+              <th>Date</th>
               <th>Produce</th>
               <th>Type</th>
               <th>Branch</th>
@@ -26,12 +30,13 @@
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="7">Loading...</td>
+              <td colspan="8">Loading...</td>
             </tr>
             <tr v-else-if="!rows.length">
-              <td colspan="7">No stock records found.</td>
+              <td colspan="8">No stock records found.</td>
             </tr>
             <tr v-for="item in rows" :key="item._id">
+              <td>{{ formatDate(item.date) }}</td>
               <td>{{ item.produceName }}</td>
               <td>{{ item.produceType }}</td>
               <td>{{ item.branch }}</td>
@@ -104,6 +109,8 @@ import { apiFetch } from '../services/api'
 
 const auth = useAuthStore()
 const searchText = ref('')
+const startDate = ref('')
+const endDate = ref('')
 const rows = ref([])
 const loading = ref(false)
 let searchTimeout = null
@@ -133,19 +140,35 @@ function showToast(message, type = 'success') {
   }, 3000)
 }
 
+function formatDate(value) {
+  if (!value) return '-'
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-GB')
+}
+
+function resetFilters() {
+  startDate.value = ''
+  endDate.value = ''
+  searchText.value = ''
+  fetchStock()
+}
+
 function getStatus(stock) {
   const qty = Number(stock || 0)
   if (qty <= 0) return { text: 'Out of Stock', class: 'danger' }
-  if (qty < 500) return { text: 'Low Stock', class: 'warning' }
+  if (qty < 1000) return { text: 'Low Stock', class: 'warning' }
   return { text: 'Available', class: 'success' }
 }
 
-async function fetchStock(searchTerm = '') {
+async function fetchStock() {
   loading.value = true
-  let url = '/api/procurement?'
-  if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}`
-  else url += 'limit=10'
+  const params = new URLSearchParams()
+  if (searchText.value) params.append('search', searchText.value)
+  if (startDate.value) params.append('startDate', startDate.value)
+  if (endDate.value) params.append('endDate', endDate.value)
 
+  const url = `/api/procurement?${params.toString()}`
+  
   const res = await apiFetch(url, {
     headers: { Authorization: `Bearer ${auth.token}` }
   })
@@ -164,7 +187,7 @@ async function fetchStock(searchTerm = '') {
 function onSearchInput() {
   if (searchTimeout) clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    fetchStock(searchText.value)
+    fetchStock()
   }, 300)
 }
 
@@ -201,7 +224,7 @@ async function saveEdit() {
   }
   showToast('Procurement updated successfully!')
   showEditModal.value = false
-  await fetchStock(searchText.value)
+  await fetchStock()
 }
 
 async function confirmDelete() {
@@ -215,11 +238,16 @@ async function confirmDelete() {
   }
   showToast('Procurement deleted successfully!')
   showDeleteModal.value = false
-  await fetchStock(searchText.value)
+  await fetchStock()
 }
 
 async function printReport() {
-  const url = searchText.value ? `/api/procurement?search=${encodeURIComponent(searchText.value)}` : '/api/procurement'
+  const params = new URLSearchParams()
+  if (searchText.value) params.append('search', searchText.value)
+  if (startDate.value) params.append('startDate', startDate.value)
+  if (endDate.value) params.append('endDate', endDate.value)
+
+  const url = `/api/procurement?${params.toString()}`
   const res = await apiFetch(url, {
     headers: { Authorization: `Bearer ${auth.token}` }
   })
@@ -236,7 +264,7 @@ async function printReport() {
   const rowsHtml = printData
     .map((item) => {
       const status = getStatus(item.stock).text
-      return `<tr><td>${item.produceName}</td><td>${item.produceType}</td><td>${item.branch}</td><td>${Number(item.stock || 0).toLocaleString()}</td><td>${Number(item.sellingPrice || 0).toLocaleString()}</td><td>${status}</td></tr>`
+      return `<tr><td>${formatDate(item.date)}</td><td>${item.produceName}</td><td>${item.produceType}</td><td>${item.branch}</td><td>${Number(item.stock || 0).toLocaleString()}</td><td>${Number(item.sellingPrice || 0).toLocaleString()}</td><td>${status}</td></tr>`
     })
     .join('')
 
@@ -249,7 +277,7 @@ async function printReport() {
       <p>Stock Management Report</p>
       <p>${meta}</p>
       <table style="width:100%;border-collapse:collapse;">
-        <thead><tr><th>Produce</th><th>Type</th><th>Branch</th><th>Available (KG)</th><th>Price (UGX)</th><th>Status</th></tr></thead>
+        <thead><tr><th>Date</th><th>Produce</th><th>Type</th><th>Branch</th><th>Available (KG)</th><th>Price (UGX)</th><th>Status</th></tr></thead>
         <tbody>${rowsHtml}</tbody>
       </table>
     </body></html>
@@ -275,6 +303,7 @@ fetchStock()
 .search-row input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; }
 .table-scroll { overflow-x: auto; }
 .stock-table { width: 100%; border-collapse: collapse; }
+.btn.reset { background: #7f8c8d; }
 .stock-table thead { background: #2c3e50; color: #d4af37; }
 .stock-table th, .stock-table td { padding: 14px; text-align: left; }
 .stock-table tbody tr:nth-child(even) { background: #f9fafb; }

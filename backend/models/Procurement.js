@@ -73,7 +73,7 @@ procurementSchema.pre('validate', function() {
     this.sellingPrice = this.sellingPricePerKg;
   }
   if ((!this.costPerKg || this.costPerKg <= 0) && this.tonnage && this.cost) {
-    this.costPerKg = Number(this.cost) / Number(this.tonnage);
+    this.costPerKg = Math.round(Number(this.cost) / Number(this.tonnage));
   }
 });
 

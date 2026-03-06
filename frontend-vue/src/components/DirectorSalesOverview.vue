@@ -6,7 +6,10 @@
     </header>
 
     <div class="search-row">
+      <input v-model="startDate" type="date" aria-label="From Date" />
+      <input v-model="endDate" type="date" aria-label="To Date" />
       <input v-model.trim="searchText" type="search" placeholder="Search produce, agent, branch..." />
+      <button class="btn-reset" type="button" @click="resetFilters">Reset</button>
       <button class="btn-print" type="button" @click="printSales">Print</button>
     </div>
 
@@ -15,13 +18,13 @@
         <thead>
           <tr>
             <th>Produce</th>
-            <th>Type</th>
+            <th>Sale Date</th>
             <th>Branch</th>
             <th>Agent</th>
             <th>Sale Type</th>
             <th>Quantity (KG)</th>
             <th>Amount (UGX)</th>
-            <th>Date</th>
+            <th>Due Date</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -37,7 +40,7 @@
           </tr>
           <tr v-for="(item, idx) in filteredSales" :key="`${item.date}-${item.branch}-${idx}`">
             <td>{{ item.produce }}</td>
-            <td>{{ item.type }}</td>
+            <td>{{ formatDate(item.date) }}</td>
             <td>{{ item.branch }}</td>
             <td>{{ item.agent }}</td>
             <td>
@@ -47,9 +50,9 @@
             </td>
             <td>{{ item.quantity }}</td>
             <td>UGX {{ Number(item.amount || 0).toLocaleString() }}</td>
-            <td>{{ formatDate(item.date) }}</td>
+            <td>{{ item.dueDate ? formatDate(item.dueDate) : '-' }}</td>
             <td>
-              <span :class="['badge', String(item.status).toLowerCase() === 'paid' ? 'success' : 'warning']">
+              <span :class="['badge', getBadgeClass(item.status)]">
                 {{ item.status }}
               </span>
             </td>
@@ -69,6 +72,8 @@ const auth = useAuthStore()
 
 const sales = ref([])
 const searchText = ref('')
+const startDate = ref('')
+const endDate = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 
@@ -83,11 +88,40 @@ function formatDate(value) {
   })
 }
 
+function getBadgeClass(status) {
+  const s = String(status).toLowerCase()
+  if (s === 'paid') return 'success'
+  if (s === 'overdue') return 'danger'
+  return 'warning'
+}
+
+function resetFilters() {
+  startDate.value = ''
+  endDate.value = ''
+  searchText.value = ''
+}
+
 const filteredSales = computed(() => {
   const query = searchText.value.toLowerCase()
-  if (!query) return sales.value
+  const start = startDate.value ? new Date(startDate.value) : null
+  const end = endDate.value ? new Date(endDate.value) : null
+
+  if (start) start.setHours(0, 0, 0, 0)
+  if (end) end.setHours(23, 59, 59, 999)
 
   return sales.value.filter((item) => {
+    const itemDate = item.date ? new Date(item.date) : null
+    let dateMatch = true
+
+    if (start || end) {
+      if (!itemDate) {
+        dateMatch = false
+      } else {
+        if (start && itemDate < start) dateMatch = false
+        if (end && itemDate > end) dateMatch = false
+      }
+    }
+
     const searchableText = [
       item.produce,
       item.type,
@@ -95,12 +129,13 @@ const filteredSales = computed(() => {
       item.agent,
       item.saleType,
       item.status,
-      formatDate(item.date)
+      formatDate(item.date),
+      formatDate(item.dueDate)
     ]
       .map((v) => String(v || '').toLowerCase())
       .join(' ')
 
-    return searchableText.includes(query)
+    return dateMatch && (!query || searchableText.includes(query))
   })
 })
 
@@ -129,13 +164,13 @@ function printSales() {
       (item) => `
       <tr>
         <td>${item.produce}</td>
-        <td>${item.type}</td>
+        <td>${formatDate(item.date)}</td>
         <td>${item.branch}</td>
         <td>${item.agent}</td>
         <td>${item.saleType}</td>
         <td>${item.quantity}</td>
         <td>UGX ${Number(item.amount || 0).toLocaleString()}</td>
-        <td>${formatDate(item.date)}</td>
+        <td>${item.dueDate ? formatDate(item.dueDate) : '-'}</td>
         <td>${item.status}</td>
       </tr>
     `
@@ -163,13 +198,13 @@ function printSales() {
           <thead>
             <tr>
               <th>Produce</th>
-              <th>Type</th>
+              <th>Sale Date</th>
               <th>Branch</th>
               <th>Agent</th>
               <th>Sale Type</th>
               <th>Quantity (KG)</th>
               <th>Amount (UGX)</th>
-              <th>Date</th>
+              <th>Due Date</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -214,11 +249,20 @@ onMounted(fetchSalesOverview)
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid #ddd;
-  width: 300px;
+  flex: 1;
 }
 
 .btn-print {
   background: #2c3e50;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-reset {
+  background: #7f8c8d;
   color: #fff;
   border: none;
   padding: 8px 14px;
@@ -265,6 +309,11 @@ onMounted(fetchSalesOverview)
 .badge.warning {
   background: #fefcbf;
   color: #744210;
+}
+
+.badge.danger {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 @media (max-width: 768px) {

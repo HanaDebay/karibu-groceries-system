@@ -11,7 +11,10 @@
         <button :class="{ active: currentView === 'credit' }" type="button" @click="currentView = 'credit'">Credit Sales</button>
       </div>
       <div class="search-box">
+        <input v-model="startDate" type="date" placeholder="From Date" aria-label="From Date" />
+        <input v-model="endDate" type="date" placeholder="To Date" aria-label="To Date" />
         <input v-model.trim="searchText" type="text" placeholder="Search by Buyer or Produce..." />
+        <button class="reset-btn" @click="resetFilters">Reset</button>
       </div>
     </section>
 
@@ -21,9 +24,7 @@
           <thead>
             <tr>
               <th>Date</th>
-              <th>Time</th>
               <th>Produce Name</th>
-              <th>Type</th>
               <th>Tonnage (KG)</th>
               <th>Buyer Name</th>
               <th>{{ currentView === 'cash' ? 'Amount Paid (UGX)' : 'Outstanding (UGX)' }}</th>
@@ -37,16 +38,14 @@
           </thead>
           <tbody>
             <tr v-if="loading">
-              <td colspan="13">Loading sales data...</td>
+              <td :colspan="numColumns">Loading sales data...</td>
             </tr>
             <tr v-else-if="!filteredSales.length">
-              <td colspan="13">No {{ currentView }} sales found.</td>
+              <td :colspan="numColumns">No {{ currentView }} sales found.</td>
             </tr>
             <tr v-for="(sale, idx) in filteredSales" :key="`${sale._id || idx}-${sale.date || sale.dispatchDate}`">
               <td>{{ formatDate(sale.date || sale.dispatchDate) }}</td>
-              <td>{{ sale.time || '-' }}</td>
               <td>{{ sale.produceName || '-' }}</td>
-              <td>{{ sale.produceType || '-' }}</td>
               <td>{{ Number(sale.tonnage || 0).toLocaleString() }}</td>
               <td>{{ sale.buyerName || '-' }}</td>
               <td>{{ Number(getAmount(sale)).toLocaleString() }}</td>
@@ -65,15 +64,16 @@
           </tbody>
           <tfoot>
             <tr class="totals-row">
-              <td colspan="4">TOTALS:</td>
+              <td colspan="2">TOTALS:</td>
               <td>{{ totalTonnage.toLocaleString() }}</td>
-              <td></td>
+              <td></td> <!-- For Buyer Name -->
               <td>{{ totalAmount.toLocaleString() }}</td>
               <td v-show="currentView === 'credit'">{{ totalPaidAmount.toLocaleString() }}</td>
               <td v-show="currentView === 'credit'">{{ totalCreditAmount.toLocaleString() }}</td>
-              <td v-show="currentView === 'credit'"></td>
-              <td v-show="currentView === 'credit'"></td>
-              <td colspan="2"></td>
+              <td v-show="currentView === 'credit'"></td> <!-- For Status -->
+              <td v-show="currentView === 'credit'"></td> <!-- For Due Date -->
+              <td></td> <!-- For Recorded By -->
+              <td></td> <!-- For Action -->
             </tr>
           </tfoot>
         </table>
@@ -132,6 +132,8 @@ const salesData = ref([])
 const loading = ref(false)
 const currentView = ref('cash')
 const searchText = ref('')
+const startDate = ref('')
+const endDate = ref('')
 const toast = reactive({ show: false, message: '', type: 'success' })
 const paymentModal = reactive({
   show: false,
@@ -169,6 +171,15 @@ function getStatusLabel(sale) {
   const due = Number(getAmount(sale) || 0)
   const paid = Number(getPaidAmount(sale) || 0)
   if (due <= 0) return 'Paid'
+  
+  if (sale.dueDate) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dueD = new Date(sale.dueDate)
+    dueD.setHours(0, 0, 0, 0)
+    if (dueD < today) return 'Overdue'
+  }
+
   if (paid > 0) return 'Partially Paid'
   return 'Pending'
 }
@@ -176,8 +187,9 @@ function getStatusLabel(sale) {
 function getStatusClass(sale) {
   const status = getStatusLabel(sale)
   if (status === 'Paid') return 'success'
+  if (status === 'Overdue') return 'danger'
   if (status === 'Partially Paid') return 'warning'
-  return 'danger'
+  return 'warning'
 }
 
 function showToast(message, type = 'success') {
@@ -189,15 +201,52 @@ function showToast(message, type = 'success') {
   }, 3000)
 }
 
+function resetFilters() {
+  startDate.value = ''
+  endDate.value = ''
+  searchText.value = ''
+}
+
+const numColumns = computed(() => (currentView.value === 'credit' ? 11 : 7))
+
 const filteredSales = computed(() => {
   const query = searchText.value.toLowerCase()
+  const start = startDate.value ? new Date(startDate.value) : null
+  const end = endDate.value ? new Date(endDate.value) : null
+
+  if (start) start.setHours(0, 0, 0, 0)
+  if (end) end.setHours(23, 59, 59, 999)
+
   return salesData.value.filter((sale) => {
     const typeOk = sale.type === currentView.value
     const buyer = String(sale.buyerName || '').toLowerCase()
     const produce = String(sale.produceName || '').toLowerCase()
     const agent = String(sale.salesAgent || sale.recordedBy || '').toLowerCase()
     const searchOk = buyer.includes(query) || produce.includes(query) || agent.includes(query)
-    return typeOk && searchOk
+    
+    let dateOk = true
+    if (start || end) {
+      const saleDateStr = sale.date || sale.dispatchDate
+      const saleDate = saleDateStr ? new Date(saleDateStr) : null
+      
+      // Check transaction date
+      let transactionDateOk = false
+      if (saleDate) {
+        transactionDateOk = (!start || saleDate >= start) && (!end || saleDate <= end)
+      }
+
+      // For credit sales, also check due date as requested
+      let dueDateOk = false
+      if (currentView.value === 'credit' && sale.dueDate) {
+        const dDate = new Date(sale.dueDate)
+        dueDateOk = (!start || dDate >= start) && (!end || dDate <= end)
+      }
+
+      // If it's credit view, match either date. If cash, match transaction date.
+      dateOk = currentView.value === 'credit' ? (transactionDateOk || dueDateOk) : transactionDateOk
+    }
+
+    return typeOk && searchOk && dateOk
   })
 })
 
@@ -332,7 +381,9 @@ fetchSales()
 .report-controls { display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 .buttons button { background: #2c3e50; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 8px; }
 .buttons button.active { background: #d4af37; color: #2c3e50; }
-.search-box input { padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; width: 250px; }
+.search-box { display: flex; gap: 10px; }
+.search-box input { padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; }
+.reset-btn { background: #7f8c8d; color: #fff; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; }
 .table-scroll { overflow-x: auto; }
 .report-table table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,.1); }
 .report-table th, .report-table td { padding: 12px; text-align: left; }

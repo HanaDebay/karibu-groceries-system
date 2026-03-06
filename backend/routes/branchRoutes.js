@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const branchController = require('../controllers/branchController');
-const verifyToken = require('../middlewares/authMiddleware');
 const checkRole = require('../middlewares/roleCheck');
+const verifyToken = require('../middlewares/authMiddleware');
+const branchController = require('../controllers/branchController');
 
 /**
  * @swagger
@@ -10,6 +10,20 @@ const checkRole = require('../middlewares/roleCheck');
  *   name: Branches
  *   description: Branch management
  */
+
+/**
+ * @swagger
+ * /api/branches:
+ *   get:
+ *     summary: Get all branches
+ *     tags: [Branches]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all branches
+ */
+router.get('/', verifyToken, branchController.getAllBranches);
 
 /**
  * @swagger
@@ -40,19 +54,10 @@ const checkRole = require('../middlewares/roleCheck');
  *         description: Access denied
  */
 router.post('/', verifyToken, checkRole(['Director']), branchController.createBranch);
+// PUT update a branch - Director only
+router.put('/:id', verifyToken, checkRole(['Director']), branchController.updateBranch);
 
-/**
- * @swagger
- * /api/branches:
- *   get:
- *     summary: Get all branches
- *     tags: [Branches]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all branches
- */
-router.get('/', verifyToken, checkRole(['Director', 'Manager']), branchController.getAllBranches);
+// DELETE a branch - Director only
+router.delete('/:id', verifyToken, checkRole(['Director']), branchController.deleteBranch);
 
 module.exports = router;
